@@ -10,4 +10,6 @@ The HallProbeCalib repository contains the necessary tools for processing the ca
 - [ ] Plotting (scatter/clouds, slices, 3d)
 - [ ] Fitting
 - [ ] Setup plotly and jupyter notebooks
+- [ ] Measurement simulations
+- [ ] Validation
 - [ ] Documentation :exclamation:
