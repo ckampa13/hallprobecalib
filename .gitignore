@@ -1,0 +1,18 @@
+# python compiled byte code
+__pycache__/
+*.py[cod]
+
+# Data, Images, tar
+*.txt
+*.tar
+*.gz
+*.p
+*.table
+
+# Directories
+plots/
+presentations/
+docs/
+datafiles/
+.ipynb_checkpoints/
+
