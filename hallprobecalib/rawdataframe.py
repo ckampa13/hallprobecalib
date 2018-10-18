@@ -27,9 +27,12 @@ def RawDataFrame(filename):
     data['BZ_CAL_1'] = pd.Series([data.Hall_Cal_Field[row][4] for row in range(ndata)])
     data['BX_CAL_2'] = pd.Series([data.Hall_Cal_Field[row][1] for row in range(ndata)])
     data['BY_CAL_2'] = pd.Series([data.Hall_Cal_Field[row][3] for row in range(ndata)])
-    data['BZ_CAL_2'] = pd.Series([data.Hall_Cal_Field[row][5] for row in range(ndata)])
+    data['BZ_CAL_2'] = pd.Series([data.Hall_Cal_Field[row][4] for row in range(ndata)])
     data['B_1'] = pd.Series([(data.BX_CAL_1[row]**2+data.BY_CAL_1[row]**2+data.BZ_CAL_1[row]**2)**(1/2) for row in range(ndata)])
     data['B_2'] = pd.Series([(data.BX_CAL_2[row]**2+data.BY_CAL_2[row]**2+data.BZ_CAL_2[row]**2)**(1/2) for row in range(ndata)])
+    data['TEMP_1'] = pd.Series([data['Hall_Cal_Temp'][row][0] for row in range(ndata)])
+    data['TEMP_2'] = pd.Series([data['Hall_Cal_Temp'][row][1] for row in range(ndata)])
+
     return data, meta_dict # return the dataframe and the metadata dictionary for the input file
 
 

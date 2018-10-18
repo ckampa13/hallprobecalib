@@ -10,9 +10,10 @@ __pycache__/
 *.table
 
 # Directories
+legacy/
 plots/
 presentations/
 docs/
-datafiles/
+datafiles
 .ipynb_checkpoints/
 
