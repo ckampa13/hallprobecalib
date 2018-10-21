@@ -30,6 +30,8 @@ def RawDataFrame(filename):
     data['BZ_CAL_2'] = pd.Series([data.Hall_Cal_Field[row][4] for row in range(ndata)])
     data['B_1'] = pd.Series([(data.BX_CAL_1[row]**2+data.BY_CAL_1[row]**2+data.BZ_CAL_1[row]**2)**(1/2) for row in range(ndata)])
     data['B_2'] = pd.Series([(data.BX_CAL_2[row]**2+data.BY_CAL_2[row]**2+data.BZ_CAL_2[row]**2)**(1/2) for row in range(ndata)])
+    data["NMR_B_AVG"] = pd.Series([np.mean(row.NMR_B) for row in data.itertuples()])
+    data["FFT_MAX"] = pd.Series([np.max(row.NMR_FFT) for row in data.itertuples()])
     data['TEMP_1'] = pd.Series([data['Hall_Cal_Temp'][row][0] for row in range(ndata)])
     data['TEMP_2'] = pd.Series([data['Hall_Cal_Temp'][row][1] for row in range(ndata)])
 
