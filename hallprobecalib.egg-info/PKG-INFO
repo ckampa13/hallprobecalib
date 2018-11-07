@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: hallprobecalib
+Version: 0.1
+Summary: Tools to analyze hall probe calibration data for Mu2e.
+Home-page: https://github.com/ckampa13/hallprobecalib
+Author: Cole Kampa
+Author-email: ckampa13@gmail.com
+License: NU
+Description: UNKNOWN
+Platform: UNKNOWN

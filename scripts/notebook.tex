@@ -1,0 +1,604 @@
+
+% Default to the notebook output style
+
+    
+
+
+% Inherit from the specified cell style.
+
+
+
+
+    
+\documentclass[11pt]{article}
+
+    
+    
+    \usepackage[T1]{fontenc}
+    % Nicer default font (+ math font) than Computer Modern for most use cases
+    \usepackage{mathpazo}
+
+    % Basic figure setup, for now with no caption control since it's done
+    % automatically by Pandoc (which extracts ![](path) syntax from Markdown).
+    \usepackage{graphicx}
+    % We will generate all images so they have a width \maxwidth. This means
+    % that they will get their normal width if they fit onto the page, but
+    % are scaled down if they would overflow the margins.
+    \makeatletter
+    \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth
+    \else\Gin@nat@width\fi}
+    \makeatother
+    \let\Oldincludegraphics\includegraphics
+    % Set max figure width to be 80% of text width, for now hardcoded.
+    \renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=.8\maxwidth]{#1}}
+    % Ensure that by default, figures have no caption (until we provide a
+    % proper Figure object with a Caption API and a way to capture that
+    % in the conversion process - todo).
+    \usepackage{caption}
+    \DeclareCaptionLabelFormat{nolabel}{}
+    \captionsetup{labelformat=nolabel}
+
+    \usepackage{adjustbox} % Used to constrain images to a maximum size 
+    \usepackage{xcolor} % Allow colors to be defined
+    \usepackage{enumerate} % Needed for markdown enumerations to work
+    \usepackage{geometry} % Used to adjust the document margins
+    \usepackage{amsmath} % Equations
+    \usepackage{amssymb} % Equations
+    \usepackage{textcomp} % defines textquotesingle
+    % Hack from http://tex.stackexchange.com/a/47451/13684:
+    \AtBeginDocument{%
+        \def\PYZsq{\textquotesingle}% Upright quotes in Pygmentized code
+    }
+    \usepackage{upquote} % Upright quotes for verbatim code
+    \usepackage{eurosym} % defines \euro
+    \usepackage[mathletters]{ucs} % Extended unicode (utf-8) support
+    \usepackage[utf8x]{inputenc} % Allow utf-8 characters in the tex document
+    \usepackage{fancyvrb} % verbatim replacement that allows latex
+    \usepackage{grffile} % extends the file name processing of package graphics 
+                         % to support a larger range 
+    % The hyperref package gives us a pdf with properly built
+    % internal navigation ('pdf bookmarks' for the table of contents,
+    % internal cross-reference links, web links for URLs, etc.)
+    \usepackage{hyperref}
+    \usepackage{longtable} % longtable support required by pandoc >1.10
+    \usepackage{booktabs}  % table support for pandoc > 1.12.2
+    \usepackage[inline]{enumitem} % IRkernel/repr support (it uses the enumerate* environment)
+    \usepackage[normalem]{ulem} % ulem is needed to support strikethroughs (\sout)
+                                % normalem makes italics be italics, not underlines
+    
+
+    
+    
+    % Colors for the hyperref package
+    \definecolor{urlcolor}{rgb}{0,.145,.698}
+    \definecolor{linkcolor}{rgb}{.71,0.21,0.01}
+    \definecolor{citecolor}{rgb}{.12,.54,.11}
+
+    % ANSI colors
+    \definecolor{ansi-black}{HTML}{3E424D}
+    \definecolor{ansi-black-intense}{HTML}{282C36}
+    \definecolor{ansi-red}{HTML}{E75C58}
+    \definecolor{ansi-red-intense}{HTML}{B22B31}
+    \definecolor{ansi-green}{HTML}{00A250}
+    \definecolor{ansi-green-intense}{HTML}{007427}
+    \definecolor{ansi-yellow}{HTML}{DDB62B}
+    \definecolor{ansi-yellow-intense}{HTML}{B27D12}
+    \definecolor{ansi-blue}{HTML}{208FFB}
+    \definecolor{ansi-blue-intense}{HTML}{0065CA}
+    \definecolor{ansi-magenta}{HTML}{D160C4}
+    \definecolor{ansi-magenta-intense}{HTML}{A03196}
+    \definecolor{ansi-cyan}{HTML}{60C6C8}
+    \definecolor{ansi-cyan-intense}{HTML}{258F8F}
+    \definecolor{ansi-white}{HTML}{C5C1B4}
+    \definecolor{ansi-white-intense}{HTML}{A1A6B2}
+
+    % commands and environments needed by pandoc snippets
+    % extracted from the output of `pandoc -s`
+    \providecommand{\tightlist}{%
+      \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+    % Add ',fontsize=\small' for more characters per line
+    \newenvironment{Shaded}{}{}
+    \newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{{#1}}}
+    \newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{{#1}}}}
+    \newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{{#1}}}
+    \newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{{#1}}}
+    \newcommand{\RegionMarkerTok}[1]{{#1}}
+    \newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\NormalTok}[1]{{#1}}
+    
+    % Additional commands for more recent versions of Pandoc
+    \newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{{#1}}}
+    \newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{{#1}}}
+    \newcommand{\ImportTok}[1]{{#1}}
+    \newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{{#1}}}}
+    \newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{{#1}}}
+    \newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{{#1}}}
+    \newcommand{\BuiltInTok}[1]{{#1}}
+    \newcommand{\ExtensionTok}[1]{{#1}}
+    \newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{{#1}}}
+    \newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{{#1}}}
+    \newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    
+    
+    % Define a nice break command that doesn't care if a line doesn't already
+    % exist.
+    \def\br{\hspace*{\fill} \\* }
+    % Math Jax compatability definitions
+    \def\gt{>}
+    \def\lt{<}
+    % Document parameters
+    \title{data\_load\_examples}
+    
+    
+    
+
+    % Pygments definitions
+    
+\makeatletter
+\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    \let\PY@ul=\relax \let\PY@tc=\relax%
+    \let\PY@bc=\relax \let\PY@ff=\relax}
+\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    \PY@tok{#1}\expandafter\PY@toks\fi}
+\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    \PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+\expandafter\def\csname PY@tok@w\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\expandafter\def\csname PY@tok@c\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.74,0.48,0.00}{##1}}}
+\expandafter\def\csname PY@tok@k\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kt\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+\expandafter\def\csname PY@tok@o\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@ow\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nf\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nc\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nn\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@ne\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.82,0.25,0.23}{##1}}}
+\expandafter\def\csname PY@tok@nv\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@no\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nl\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.63,0.63,0.00}{##1}}}
+\expandafter\def\csname PY@tok@ni\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.60,0.60,0.60}{##1}}}
+\expandafter\def\csname PY@tok@na\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.49,0.56,0.16}{##1}}}
+\expandafter\def\csname PY@tok@nt\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nd\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\expandafter\def\csname PY@tok@s\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sd\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@si\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\expandafter\def\csname PY@tok@se\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sr\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\expandafter\def\csname PY@tok@ss\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@sx\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@m\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@gh\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@gu\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@gd\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@gi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.63,0.00}{##1}}}
+\expandafter\def\csname PY@tok@gr\endcsname{\def\PY@tc##1{\textcolor[rgb]{1.00,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@ge\endcsname{\let\PY@it=\textit}
+\expandafter\def\csname PY@tok@gs\endcsname{\let\PY@bf=\textbf}
+\expandafter\def\csname PY@tok@gp\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@go\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.53,0.53,0.53}{##1}}}
+\expandafter\def\csname PY@tok@gt\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.27,0.87}{##1}}}
+\expandafter\def\csname PY@tok@err\endcsname{\def\PY@bc##1{\setlength{\fboxsep}{0pt}\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{\strut ##1}}}
+\expandafter\def\csname PY@tok@kc\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kd\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kn\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kr\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@bp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@fm\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@vc\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vg\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vm\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@sa\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sc\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@dl\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@s2\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sh\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@s1\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@mb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mf\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mh\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@il\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mo\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@ch\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cm\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cpf\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@c1\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cs\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+
+\def\PYZbs{\char`\\}
+\def\PYZus{\char`\_}
+\def\PYZob{\char`\{}
+\def\PYZcb{\char`\}}
+\def\PYZca{\char`\^}
+\def\PYZam{\char`\&}
+\def\PYZlt{\char`\<}
+\def\PYZgt{\char`\>}
+\def\PYZsh{\char`\#}
+\def\PYZpc{\char`\%}
+\def\PYZdl{\char`\$}
+\def\PYZhy{\char`\-}
+\def\PYZsq{\char`\'}
+\def\PYZdq{\char`\"}
+\def\PYZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYZat{@}
+\def\PYZlb{[}
+\def\PYZrb{]}
+\makeatother
+
+
+    % Exact colors from NB
+    \definecolor{incolor}{rgb}{0.0, 0.0, 0.5}
+    \definecolor{outcolor}{rgb}{0.545, 0.0, 0.0}
+
+
+
+    
+    % Prevent overflowing lines due to hard-to-break entities
+    \sloppy 
+    % Setup hyperref package
+    \hypersetup{
+      breaklinks=true,  % so long urls are correctly broken across lines
+      colorlinks=true,
+      urlcolor=urlcolor,
+      linkcolor=linkcolor,
+      citecolor=citecolor,
+      }
+    % Slightly bigger margins than the latex defaults
+    
+    \geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+    
+    
+
+    \begin{document}
+    
+    
+    \maketitle
+    
+    
+
+    
+    \section{Data Loading Examples}\label{data-loading-examples}
+
+\subsection{Import packages}\label{import-packages}
+
+\begin{itemize}
+\tightlist
+\item
+  Calibration code is being developed as a python package that can
+  import any necessary class or function.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Called "hallprobecalib"
+  \item
+    Once installed, can be used in any instance of python on that
+    computer
+  \item
+    may add to PyPI (Python Package Index) for installation via 'pip'
+  \end{itemize}
+\end{itemize}
+
+To install: \url{https://github.com/ckampa13/hallprobecalib} - clone
+repository - \texttt{hallprobecalib/hallprobecalib/\_\_init\_\_.py},
+line 3: set proper "hpc\_ext\_path" (hall probe calibration external
+data path) e.g. I use \textasciitilde{}/Coding/hallprobecalib\_extras/ -
+split data directory into 'datafiles' (raw, pickled) and 'plots' - in
+terminal, navigate to \texttt{hallprobecalib} (base repository
+directory) and install: \#\#\# \textbf{\texttt{pip\ install\ -e\ .}}
+
+\textbf{Disclaimer:} I have not gone through the necessary steps to make
+sure package dependancies are installed when installing hallprobecalib.
+First runtime errors will likely be missing packages (install with pip,
+conda, etc). Will work this out eventually.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}17}]:} \PY{k+kn}{from} \PY{n+nn}{sys} \PY{k}{import} \PY{n}{getsizeof}
+         \PY{c+c1}{\PYZsh{}\PYZpc{}matplotlib widget}
+         \PY{o}{\PYZpc{}}\PY{k}{matplotlib} notebook
+         \PY{c+c1}{\PYZsh{}\PYZpc{}matplotlib ipympl}
+         \PY{c+c1}{\PYZsh{}\PYZpc{}matplotlib inline}
+         \PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
+         \PY{c+c1}{\PYZsh{}from IPython import display}
+         \PY{c+c1}{\PYZsh{}from IPython.core.interactiveshell import InteractiveShell}
+         \PY{c+c1}{\PYZsh{}InteractiveShell.ast\PYZus{}node\PYZus{}interactivity = \PYZdq{}all\PYZdq{}}
+         \PY{c+c1}{\PYZsh{}from IPython.display import set\PYZus{}matplotlib\PYZus{}formats}
+         \PY{c+c1}{\PYZsh{}set\PYZus{}matplotlib\PYZus{}formats(\PYZsq{}png\PYZsq{}, \PYZsq{}pdf\PYZsq{})}
+         
+         \PY{o}{\PYZpc{}}\PY{k}{load\PYZus{}ext} autoreload
+         \PY{o}{\PYZpc{}}\PY{k}{autoreload} 2
+         
+         \PY{k+kn}{from} \PY{n+nn}{hallprobecalib}\PY{n+nn}{.}\PY{n+nn}{rawdataframe} \PY{k}{import} \PY{n}{RawDataFrame}
+         \PY{k+kn}{from} \PY{n+nn}{hallprobecalib}\PY{n+nn}{.}\PY{n+nn}{scatter3d} \PY{k}{import} \PY{n}{Scatter3d}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+The autoreload extension is already loaded. To reload it, use:
+  \%reload\_ext autoreload
+
+    \end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}18}]:} \PY{n}{plt}\PY{o}{.}\PY{n}{rcParams}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{figure.figsize}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]} \PY{o}{=} \PY{p}{(}\PY{l+m+mf}{8.0}\PY{p}{,} \PY{l+m+mf}{5.0}\PY{p}{)}
+\end{Verbatim}
+
+
+    \subsection{Raw Data}\label{raw-data}
+
+\begin{itemize}
+\tightlist
+\item
+  Read data from LabView output (.log file).
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Read line by line
+  \item
+    Group by grid point (measurement \#)
+  \item
+    Split each grid point into corresponding columns
+  \item
+    Convert to Pandas DataFrame (a powerful Python data structure)
+  \item
+    Add new columns for calculated values (mean NMR B, etc)
+  \item
+    Delete unneeded values (can pick and choose in function call)
+  \item
+    Serialize data
+  \end{itemize}
+\end{itemize}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}14}]:} \PY{o}{\PYZpc{}}\PY{k}{time} df,meta = RawDataFrame(\PYZsq{}datafiles/2018\PYZhy{}10\PYZhy{}03 125726\PYZsq{},makepickle=True)
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+CPU times: user 8.43 s, sys: 627 ms, total: 9.06 s
+Wall time: 8.86 s
+
+    \end{Verbatim}
+
+    \subsection{Serialized Data}\label{serialized-data}
+
+\begin{itemize}
+\tightlist
+\item
+  Once the raw data is cleaned and saved in a serialized format
+  ('pickling'), the resulting data file is reduced in size by (x??) and
+  can be read in significantly faster (x??).
+\end{itemize}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}19}]:} \PY{o}{\PYZpc{}}\PY{k}{time} df,meta = RawDataFrame(\PYZsq{}datafiles/2018\PYZhy{}10\PYZhy{}03 125726\PYZsq{},frompickle=True)
+         \PY{n+nb}{print}\PY{p}{(}\PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+si}{\PYZob{}df.columns\PYZcb{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{Number of Measurements: }\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{len(df)\PYZcb{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+CPU times: user 51 ms, sys: 8 ms, total: 59 ms
+Wall time: 58.6 ms
+
+Index(['PS\_DMM', 'X\_ZAB', 'Y\_ZAB', 'Z\_ZAB', 'X', 'Y', 'Z', 'PAT\_X', 'PAT\_Y',
+       'PAT\_Z', 'BX\_CAL\_1', 'BY\_CAL\_1', 'BZ\_CAL\_1', 'BX\_CAL\_2', 'BY\_CAL\_2',
+       'BZ\_CAL\_2', 'BX\_RAW\_1', 'BY\_RAW\_1', 'BZ\_RAW\_1', 'BX\_RAW\_2', 'BY\_RAW\_2',
+       'BZ\_RAW\_2', 'B\_MAG\_CAL\_1', 'B\_MAG\_CAL\_2', 'NMR\_B\_AVG', 'FFT\_MAX',
+       'TEMP\_1', 'TEMP\_2', 'GRAD\_B\_X', 'GRAD\_B\_Y', 'GRAD\_B\_Z', 'GRAD\_B\_MAG'],
+      dtype='object')
+Number of Measurements: 35301
+
+    \end{Verbatim}
+
+    \subsection{File Size Reduction and Loading Speed
+Improvement:}\label{file-size-reduction-and-loading-speed-improvement}
+
+35,301 measurements: - Raw: 211.8 MB, \textasciitilde{}8 s - Pickled:
+11.5 MB, \textasciitilde{}75 ms
+
+    \subsection{Immediate Usability}\label{immediate-usability}
+
+The DataFrame on its own can be manipulated easily interactively, or can
+be used for more complex analyses in scripts and modules.
+
+Example 1: Histogram of NMR readings for all field points
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}20}]:} \PY{c+c1}{\PYZsh{} histo}
+         \PY{n}{\PYZus{}} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{p}{)}
+         \PY{n}{df}\PY{o}{.}\PY{n}{NMR\PYZus{}B\PYZus{}AVG}\PY{o}{.}\PY{n}{hist}\PY{p}{(}\PY{n}{bins}\PY{o}{=}\PY{l+m+mi}{100}\PY{p}{)}
+         
+         \PY{n}{plt}\PY{o}{.}\PY{n}{title}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{NMR\PYZus{}B\PYZus{}AVG Hist}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{xlabel}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{B (T)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+         
+         \PY{c+c1}{\PYZsh{} stats}
+         \PY{n+nb}{print}\PY{p}{(}\PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{mean: }\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{df.NMR\PYZus{}B\PYZus{}AVG.mean()\PYZcb{} }\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{stddev: }\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{df.NMR\PYZus{}B\PYZus{}AVG.std()\PYZcb{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+
+
+    
+    \begin{verbatim}
+<IPython.core.display.Javascript object>
+    \end{verbatim}
+
+    
+    
+    \begin{verbatim}
+<IPython.core.display.HTML object>
+    \end{verbatim}
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+mean: 1.0491909308561547 
+stddev: 0.00014236599546232602
+
+    \end{Verbatim}
+
+    \subsubsection{Example 2: 3D scatter plot with gradient
+cut}\label{example-2-3d-scatter-plot-with-gradient-cut}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}21}]:} \PY{n}{fig1}\PY{p}{,}\PY{n}{ax1} \PY{o}{=} \PY{n}{Scatter3d}\PY{p}{(}\PY{n}{df}\PY{o}{.}\PY{n}{X}\PY{p}{,}\PY{n}{df}\PY{o}{.}\PY{n}{Y}\PY{p}{,}\PY{n}{df}\PY{o}{.}\PY{n}{Z}\PY{p}{,}\PY{n}{df}\PY{o}{.}\PY{n}{NMR\PYZus{}B\PYZus{}AVG}\PY{p}{,}\PY{n}{colorsMap}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{viridis}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.025}\PY{p}{,}\PY{n}{psize}\PY{o}{=}\PY{l+m+mi}{10}\PY{p}{)}
+         
+         \PY{n}{g\PYZus{}cut} \PY{o}{=} \PY{n}{df}\PY{o}{.}\PY{n}{GRAD\PYZus{}B\PYZus{}MAG} \PY{o}{\PYZlt{}} \PY{n}{df}\PY{o}{.}\PY{n}{GRAD\PYZus{}B\PYZus{}MAG}\PY{o}{.}\PY{n}{quantile}\PY{p}{(}\PY{l+m+mf}{0.05}\PY{p}{)}
+         \PY{n}{fig1}\PY{p}{,}\PY{n}{ax1} \PY{o}{=} \PY{n}{Scatter3d}\PY{p}{(}\PY{n}{df}\PY{p}{[}\PY{n}{g\PYZus{}cut}\PY{p}{]}\PY{o}{.}\PY{n}{X}\PY{p}{,}\PY{n}{df}\PY{p}{[}\PY{n}{g\PYZus{}cut}\PY{p}{]}\PY{o}{.}\PY{n}{Y}\PY{p}{,}\PY{n}{df}\PY{p}{[}\PY{n}{g\PYZus{}cut}\PY{p}{]}\PY{o}{.}\PY{n}{Z}\PY{p}{,}\PY{n}{df}\PY{p}{[}\PY{n}{g\PYZus{}cut}\PY{p}{]}\PY{o}{.}\PY{n}{NMR\PYZus{}B\PYZus{}AVG}\PY{p}{,}\PY{n}{colorsMap}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{hot}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{1.}\PY{p}{,}\PY{n}{psize}\PY{o}{=}\PY{l+m+mi}{10}\PY{p}{,}\PY{n}{fig}\PY{o}{=}\PY{n}{fig1}\PY{p}{,}\PY{n}{ax}\PY{o}{=}\PY{n}{ax1}\PY{p}{)}
+         
+         \PY{n}{x0} \PY{o}{=} \PY{n}{df}\PY{o}{.}\PY{n}{X} \PY{o}{\PYZlt{}} \PY{l+m+mi}{7500}
+         \PY{n}{fig2}\PY{p}{,}\PY{n}{ax2} \PY{o}{=} \PY{n}{Scatter3d}\PY{p}{(}\PY{n}{df}\PY{o}{.}\PY{n}{X}\PY{p}{,}\PY{n}{df}\PY{o}{.}\PY{n}{Y}\PY{p}{,}\PY{n}{df}\PY{o}{.}\PY{n}{Z}\PY{p}{,}\PY{n}{df}\PY{o}{.}\PY{n}{NMR\PYZus{}B\PYZus{}AVG}\PY{p}{,}\PY{n}{colorsMap}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{viridis}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.025}\PY{p}{,}\PY{n}{psize}\PY{o}{=}\PY{l+m+mi}{10}\PY{p}{)}
+         \PY{n}{fig2}\PY{p}{,}\PY{n}{ax2} \PY{o}{=} \PY{n}{Scatter3d}\PY{p}{(}\PY{n}{df}\PY{p}{[}\PY{n}{g\PYZus{}cut}\PY{o}{\PYZam{}}\PY{n}{x0}\PY{p}{]}\PY{o}{.}\PY{n}{X}\PY{p}{,}\PY{n}{df}\PY{p}{[}\PY{n}{g\PYZus{}cut}\PY{o}{\PYZam{}}\PY{n}{x0}\PY{p}{]}\PY{o}{.}\PY{n}{Y}\PY{p}{,}\PY{n}{df}\PY{p}{[}\PY{n}{g\PYZus{}cut}\PY{o}{\PYZam{}}\PY{n}{x0}\PY{p}{]}\PY{o}{.}\PY{n}{Z}\PY{p}{,}\PY{n}{df}\PY{p}{[}\PY{n}{g\PYZus{}cut}\PY{o}{\PYZam{}}\PY{n}{x0}\PY{p}{]}\PY{o}{.}\PY{n}{NMR\PYZus{}B\PYZus{}AVG}\PY{p}{,}\PY{n}{colorsMap}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{hot}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{1.}\PY{p}{,}\PY{n}{psize}\PY{o}{=}\PY{l+m+mi}{10}\PY{p}{,}\PY{n}{fig}\PY{o}{=}\PY{n}{fig2}\PY{p}{,}\PY{n}{ax}\PY{o}{=}\PY{n}{ax2}\PY{p}{)}
+         
+         \PY{n}{fig3} \PY{o}{=} \PY{n}{fig2}
+\end{Verbatim}
+
+
+    
+    \begin{verbatim}
+<IPython.core.display.Javascript object>
+    \end{verbatim}
+
+    
+    
+    \begin{verbatim}
+<IPython.core.display.HTML object>
+    \end{verbatim}
+
+    
+    
+    \begin{verbatim}
+<IPython.core.display.Javascript object>
+    \end{verbatim}
+
+    
+    
+    \begin{verbatim}
+<IPython.core.display.HTML object>
+    \end{verbatim}
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}22}]:} \PY{n}{\PYZus{}} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{p}{)}
+         \PY{n}{df}\PY{o}{.}\PY{n}{NMR\PYZus{}B\PYZus{}AVG}\PY{o}{.}\PY{n}{hist}\PY{p}{(}\PY{n}{bins}\PY{o}{=}\PY{l+m+mi}{50}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+sa}{r}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{no cut}\PY{l+s+s2}{\PYZdq{}}\PY{o}{+}\PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{mean: }\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{df.NMR\PYZus{}B\PYZus{}AVG.mean()\PYZcb{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{stddev: }\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{df.NMR\PYZus{}B\PYZus{}AVG.std()\PYZcb{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+         \PY{n}{df}\PY{p}{[}\PY{n}{g\PYZus{}cut}\PY{o}{\PYZam{}}\PY{n}{x0}\PY{p}{]}\PY{o}{.}\PY{n}{NMR\PYZus{}B\PYZus{}AVG}\PY{o}{.}\PY{n}{hist}\PY{p}{(}\PY{n}{bins}\PY{o}{=}\PY{l+m+mi}{5}\PY{p}{,} \PY{n}{color}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{green}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{label}\PY{o}{=}\PY{l+s+sa}{r}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZdl{}|}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{nabla B|\PYZdl{}, 5th percentile}\PY{l+s+s2}{\PYZdq{}}\PY{o}{+}\PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{mean: }\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{df[g\PYZus{}cut\PYZam{}x0].NMR\PYZus{}B\PYZus{}AVG.mean()\PYZcb{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{stddev: }\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{df[g\PYZus{}cut\PYZam{}x0].NMR\PYZus{}B\PYZus{}AVG.std()\PYZcb{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+         
+         \PY{n}{plt}\PY{o}{.}\PY{n}{title}\PY{p}{(}\PY{l+s+sa}{r}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{NMR\PYZus{}B\PYZus{}AVG Hist, \PYZdl{}|}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{nabla B|\PYZdl{} Cuts}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{xlabel}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{B (T)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{p}{)}
+         
+         \PY{n}{\PYZus{}} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{p}{)}
+         \PY{n}{df}\PY{p}{[}\PY{n}{g\PYZus{}cut}\PY{o}{\PYZam{}}\PY{n}{x0}\PY{p}{]}\PY{o}{.}\PY{n}{NMR\PYZus{}B\PYZus{}AVG}\PY{o}{.}\PY{n}{hist}\PY{p}{(}\PY{n}{bins}\PY{o}{=}\PY{l+m+mi}{25}\PY{p}{,} \PY{n}{color}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{green}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+sa}{r}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZdl{}|}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{nabla B|\PYZdl{}, 5th percentile}\PY{l+s+s2}{\PYZdq{}}\PY{o}{+}\PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{mean: }\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{df[g\PYZus{}cut\PYZam{}x0].NMR\PYZus{}B\PYZus{}AVG.mean()\PYZcb{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{stddev: }\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{df[g\PYZus{}cut\PYZam{}x0].NMR\PYZus{}B\PYZus{}AVG.std()\PYZcb{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+         
+         \PY{n}{plt}\PY{o}{.}\PY{n}{title}\PY{p}{(}\PY{l+s+sa}{r}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{NMR\PYZus{}B\PYZus{}AVG Hist, \PYZdl{}|}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{nabla B|\PYZdl{} Cuts}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{xlabel}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{B (T)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+
+
+    
+    \begin{verbatim}
+<IPython.core.display.Javascript object>
+    \end{verbatim}
+
+    
+    
+    \begin{verbatim}
+<IPython.core.display.HTML object>
+    \end{verbatim}
+
+    
+    
+    \begin{verbatim}
+<IPython.core.display.Javascript object>
+    \end{verbatim}
+
+    
+    
+    \begin{verbatim}
+<IPython.core.display.HTML object>
+    \end{verbatim}
+
+    
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}22}]:} <matplotlib.legend.Legend at 0x7f21ec66a828>
+\end{Verbatim}
+            
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}7}]:} \PY{c+c1}{\PYZsh{}plt.close(\PYZdq{}all\PYZdq{})}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}8}]:} \PY{n+nb}{len}\PY{p}{(}\PY{n}{df}\PY{p}{[}\PY{n}{g\PYZus{}cut}\PY{o}{\PYZam{}}\PY{n}{x0}\PY{p}{]}\PY{p}{)}
+\end{Verbatim}
+
+
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}8}]:} 443
+\end{Verbatim}
+            
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}9}]:} \PY{n}{df}\PY{o}{.}\PY{n}{NMR\PYZus{}B\PYZus{}AVG}\PY{o}{.}\PY{n}{max}\PY{p}{(}\PY{p}{)}\PY{o}{\PYZhy{}}\PY{n}{df}\PY{o}{.}\PY{n}{NMR\PYZus{}B\PYZus{}AVG}\PY{o}{.}\PY{n}{min}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+
+
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}9}]:} 0.0009582432599997137
+\end{Verbatim}
+            
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}10}]:} \PY{n}{df}\PY{p}{[}\PY{n}{g\PYZus{}cut}\PY{o}{\PYZam{}}\PY{n}{x0}\PY{p}{]}\PY{o}{.}\PY{n}{NMR\PYZus{}B\PYZus{}AVG}\PY{o}{.}\PY{n}{max}\PY{p}{(}\PY{p}{)}\PY{o}{\PYZhy{}}\PY{n}{df}\PY{p}{[}\PY{n}{g\PYZus{}cut}\PY{o}{\PYZam{}}\PY{n}{x0}\PY{p}{]}\PY{o}{.}\PY{n}{NMR\PYZus{}B\PYZus{}AVG}\PY{o}{.}\PY{n}{min}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+
+
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}10}]:} 5.286699999973443e-05
+\end{Verbatim}
+            
+    min\_b\_range yields: 3.4769e-6 T
+
+    \section{\texorpdfstring{\textbf{Takeaways}}{Takeaways}}\label{takeaways}
+
+\begin{itemize}
+\tightlist
+\item
+  Serializing data greatly improves speed of data loading and decreases
+  file size
+\item
+  Will need to make concrete estimates of expected data quantities.
+\end{itemize}
+
+\textbf{Q: Is the current method good enough?}
+
+A: Probably. My estimate for 1,000,000 measurements: 6 GB raw
+(\textasciitilde{}4 min to load, pickling), 325.8 MB pickled
+(\textasciitilde{}1.5 s to load).
+
+
+    % Add a bibliography block to the postdoc
+    
+    
+    
+    \end{document}

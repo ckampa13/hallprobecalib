@@ -10,18 +10,20 @@ def Scatter3d(x,y,z, cs, cslabel='B (T)', alpha=1, colorsMap='hot', psize=0.5, f
     cm = plt.get_cmap(colorsMap)
     cNorm = Normalize(vmin=min(cs), vmax=max(cs))
     scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
-    if ax == None:
+    if fig == None:
         fig = plt.figure()
-        ax = Axes3D(fig)
+    if ax == None:
+        ax = fig.gca(projection='3d')
     ax.scatter(x, y, z, s=ps, c=scalarMap.to_rgba(cs), alpha=alpha)
     if outline:
         GridOutline(x,y,z,ax,color=outlinecolor,linewidth=outlinewidth,txt=txt)
     scalarMap.set_array(cs)
-    cbar = fig.colorbar(scalarMap)
+    cbar = fig.colorbar(scalarMap,format='%.6E',shrink=0.5)
     ax.set_xlabel("X (microns)")
     ax.set_ylabel("Y (microns)")
     ax.set_zlabel("Z (microns)")
     cbar.ax.set_ylabel(cslabel)
+    #cbar.ax.yaxis.ticklabel_format(useOffset=False)
     plt.show()
     return fig,ax
 
