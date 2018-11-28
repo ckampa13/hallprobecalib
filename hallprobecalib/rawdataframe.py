@@ -73,19 +73,20 @@ def RawDataFrame(filename,suffix='',frompickle=False,grad=True,clean=True,makepi
 
 def gradient_calc(df, f='NMR_B_AVG', coord='ZAB'):
     # f determines what quantity to determine the gradient; coord handles discrepancy of measured vs pattern coordinates: 'ZAB' for measured, 'PAT' for pattern
+    if len(df.X.unique())*len(df.Y.unique())*len(df.Z.unique()) != len(df):
+        cut = df.X != df.X.unique()[-1]
+    else:
+        cut = df.FFT_MAX != -1000
     if 'ZAB' in coord:
-        x = df.X_ZAB.unique()
-        y = df.Y_ZAB.unique()
-        z = df.Z_ZAB.unique()
+        x = df[cut].X_ZAB.unique()
+        y = df[cut].Y_ZAB.unique()
+        z = df[cut].Z_ZAB.unique()
     elif 'PAT' in coord:
-        x = df.PAT_X.unique()
-        y = df.PAT_Y.unique()
-        z = df.PAT_Z.unique()
+        x = df[cut].PAT_X.unique()
+        y = df[cut].PAT_Y.unique()
+        z = df[cut].PAT_Z.unique()
     # xx,yy,zz = np.meshgrid(x,y,z,indexing='ij')
-    ff = np.array(df[f])  #1D here
-    gridsize = len(x)*len(y)*len(z)
-    if gridsize != len(df):
-        np.append(f,np.zeros())
+    ff = np.array(df[cut] [f])  #1D here
     ff = np.reshape(ff,(len(x),len(y),len(z))) #3D here
     gradx, grady, gradz = np.gradient(ff,x,y,z)
     gradmag = (gradx**2 + grady**2 + gradz**2)**(1/2)
