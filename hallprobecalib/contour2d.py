@@ -2,7 +2,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 import numpy as np
-import seaborn as sns
+# import seaborn as sns
 
 def Contour2d(df, f="GRAD_B_MAG", coordSlice="X", posSlice=0., cutDir='<', quantile=0.25, fill=True, cmap="viridis", originCenter=True, alpha=1, linewidth=1., fig=None, ax=None):
     # passing in the pandas dataframe, variable for z, and positional slice

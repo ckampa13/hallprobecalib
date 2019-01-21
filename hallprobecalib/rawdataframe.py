@@ -6,8 +6,8 @@ from hallprobecalib import hpc_ext_path
 
 def RawDataFrame(filename,suffix='',frompickle=False,grad=True,clean=True,makepickle=False):
     if frompickle:
-        meta_dict = pkl.load(open(hpc_ext_path+filename+"_meta.pkl", 'rb'))
-        return pkl.load(open(hpc_ext_path+filename+".pkl", 'rb')),meta_dict
+        meta_dict = pd.read_pickle(hpc_ext_path+filename+"_meta.pkl")
+        return pd.read_pickle(hpc_ext_path+filename+".pkl"),meta_dict
 
     # f1 = "../hallprobecalib_extras/datafiles/2018-10-03 125726.txt"
     with open(hpc_ext_path+filename+'.txt','r') as file:
