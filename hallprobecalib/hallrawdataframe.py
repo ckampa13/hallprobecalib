@@ -320,3 +320,4 @@ def gradient_calc(df, f='NMR_B_AVG', coord='ZAB'):
 
 if __name__ == '__main__':
     df_raw, meta_raw = RawDataFrame(hpc_ext_path+"datafiles/2018-11-29 113332.txt")
+
