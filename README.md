@@ -5,13 +5,13 @@ The hallprobecalib repository contains the necessary tools for processing the ca
 ## Main Modules
 ## Scripts
 ## To Do
-- [ ] Directory structure
-- [ ] Data processing / pandas dataframe (from raw, pickling, etc)
-- [ ] Plotting (scatter/clouds, slices, 3d)
+- [x] Directory structure
+- [x] Data processing / pandas dataframe (from raw, pickling, etc)
+- [x] Plotting (scatter/clouds, slices, 3d)
 - [ ] Fitting
 - [ ] Error handling
 - [ ] Profiling :racehorse:
-- [ ] Setup plotly and jupyter notebooks
+- [x] Setup plotly and jupyter notebooks
 - [ ] Measurement simulations
 - [ ] Validation
 - [ ] Documentation :exclamation:
