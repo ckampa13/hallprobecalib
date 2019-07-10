@@ -290,13 +290,15 @@ def make_pickle(df,meta,filename,suffix=''):
     pkl.dump(meta, open(hpc_ext_path+meta_filename, "wb"), protocol=pkl.HIGHEST_PROTOCOL)
     pkl.dump(df, open(hpc_ext_path+filename, "wb"), protocol=pkl.HIGHEST_PROTOCOL)
 
-def gradient_calc(df, f='NMR_B_AVG', coord='ZAB'):
+def gradient_calc(df, f='NMR_B_AVG', coord='ZAB', ds=False):
     # f determines what quantity to determine the gradient; coord handles discrepancy of measured vs pattern coordinates: 'ZAB' for measured, 'PAT' for pattern
     if len(df.X.unique())*len(df.Y.unique())*len(df.Z.unique()) != len(df):
         cut = df.X != df.X.unique()[-1]
-    else:
+    elif not ds:
         cut = df.FFT_MAX != -1000
-    if 'ZAB' in coord:
+    else:
+        cut = df.Y != -10000000.
+    if ('ZAB' in coord) or ds:
         x = df[cut].X.unique()
         y = df[cut].Y.unique()
         z = df[cut].Z.unique()

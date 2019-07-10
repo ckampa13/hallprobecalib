@@ -8,7 +8,7 @@ from plotly.offline import plot, iplot
 # from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 # init_notebook_mode(connected=True)
 
-def scatter2d(x_list, y_list, size_list=None, lines=True, markers=False, title=None, filename=None, inline=False):
+def scatter2d(x_list, y_list, size_list=None, lines=True, markers=False, title=None, filename=None, show_plot=True,legend_list=None, inline=False):
     traces = []
 
     if type(x_list) != list:
@@ -35,10 +35,15 @@ def scatter2d(x_list, y_list, size_list=None, lines=True, markers=False, title=N
     else:
         title = title + f' {y_list[0].name} vs. {x_list[0].name}'
 
+
     for idx in range(len(x_list)):
         x = x_list[idx]
         y = y_list[idx]
         size = size_list[idx]
+        if legend_list == None:
+            name = y.name
+        else:
+            name = legend_list[idx]
         traces.append(
         go.Scatter(
             x = x,
@@ -47,11 +52,12 @@ def scatter2d(x_list, y_list, size_list=None, lines=True, markers=False, title=N
             marker=dict(
                 size=size,
             ),
-            name = y.name,
+            name = name,
         )
         )
 
     data = traces
+
 
     layout = go.Layout(
         title=title,
@@ -69,10 +75,11 @@ def scatter2d(x_list, y_list, size_list=None, lines=True, markers=False, title=N
     if filename == None:
         filename = 'scatter2d_DEFAULT'
 
-    if inline:
-        iplot(fig, filename=hpc_ext_path+'plots/'+filename+'.html')
-    else:
-        plot(fig, filename=hpc_ext_path+'plots/'+filename+'.html')
+    if show_plot == True:
+        if inline:
+            iplot(fig, filename=hpc_ext_path+'plots/'+filename+'.html')
+        else:
+            plot(fig, filename=hpc_ext_path+'plots/'+filename+'.html')
 
     return fig
 
@@ -271,7 +278,7 @@ def scatter3d(x_list, y_list, z_list, scale_list=None, mode_list=None, units_lis
     return fig
 
 
-def histo(series_list, names_list=None, xlabel='B (T)', bins=10, opacity=0.9,cut=[0.,1.], yscale='linear', inline=False, title=None, filename=None):
+def histo(series_list, names_list=None, xlabel='B (T)', bins=10, opacity=0.9,cut=[0.,1.], yscale='linear', inline=False, title=None, verbosity=2, filename=None):
     traces = []
 
     if type(series_list) != list:
@@ -288,12 +295,21 @@ def histo(series_list, names_list=None, xlabel='B (T)', bins=10, opacity=0.9,cut
         c = (series >= series.quantile(cut[0])) & (series <= series.quantile(cut[1]))
         series_list[idx] = series[c]
         series = series[c]
-        name = (f'<br>{names_list[idx]}<br>'
-                f'mean: {(series.mean()):.7E}<br>'
-                f'std:     {(series.std()):.3E}<br>'
-                f'min:     {series.min():.3E}<br>'
-                f'max:     {series.max():.3E}<br>'
-                f'count: {len(series)}')
+        if verbosity == 2:
+            name = (f'<br>{names_list[idx]}<br>'
+                    f'mean: {(series.mean()):.7E}<br>'
+                    f'std:     {(series.std()):.3E}<br>'
+                    f'range: {(series.max()-series.min()):.3E}<br>'
+                    # f'min:     {(series.min()-series.mean()):.3E}<br>'
+                    # f'max:     {(series.max()-series.mean()):.3E}<br>'
+                    f'count: {len(series)}')
+        elif verbosity == 1:
+            name = (f'<br>{names_list[idx]}<br>'
+                    f'mean: {(series.mean()):.7E}<br>'
+                    f'std:     {(series.std()):.3E}<br>')
+        else:
+            name = (f'<br>{names_list[idx]}<br>')
+
         traces.append(go.Histogram(x=series, nbinsx=bins, opacity=opacity,name=name))
 
     data = traces
