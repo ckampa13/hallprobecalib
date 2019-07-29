@@ -1,7 +1,7 @@
 import numpy as np
+import copy
 from hallprobecalib import hpc_ext_path
 from plotly import tools
-import plotly.plotly as py
 import plotly.graph_objs as go
 import plotly.figure_factory as FF
 from plotly.offline import plot, iplot
@@ -84,7 +84,7 @@ def scatter2d(x_list, y_list, size_list=None, lines=True, markers=False, title=N
     return fig
 
 
-def scatter3d(x_list, y_list, z_list, scale_list=None, mode_list=None, units_list=None, colors_list=None, colorbars_list=None, min_color_list=None, max_color_list=None, same_color=False, opacity_list=None, size_list=None, reverse_scale=False, aspect_auto = True, inline=False, title=None, filename=None, show_plot=True):
+def scatter3d(x_list, y_list, z_list, scale_list=None,scale_unit='ns', mode_list=None, units_list=None, colors_list=None, colorbars_list=None, min_color_list=None, max_color_list=None, same_color=False, opacity_list=None, size_list=None, reverse_scale=False, aspect_auto = True, rangex=None, rangey=None, rangez=None ,inline=False, title=None, filename=None, show_plot=True, fig_=None,copy_fig=False):
     '''
     units_list = [('mm','mm','K'),('T','C','cm')] as an example. List contains 3 element tuples for (x units,y units, z units)
     '''
@@ -188,7 +188,7 @@ def scatter3d(x_list, y_list, z_list, scale_list=None, mode_list=None, units_lis
                                             cmax = max_color,
                                             reversescale = reverse_scale,
                                             opacity=opacity,
-                                            colorbar=dict(thickness=20, title=f'{C.name} ({units[2]})',
+                                            colorbar=dict(thickness=20, title=f'{C.name} ({scale_unit})',
                                                           x=-0.1*num_colorbars,y=0.5),
                                             showscale = showscale,
                                         )
@@ -214,16 +214,21 @@ def scatter3d(x_list, y_list, z_list, scale_list=None, mode_list=None, units_lis
     ymax = min([x.max() for x in y_list])
     zmax = min([x.max() for x in z_list])
 
-    rangex = xmax - xmin
-    rangey = ymax - ymin
-    rangez = zmax - zmin
+    if rangex == None:
+        rangex = xmax - xmin
+    if rangey == None:
+        rangey = ymax - ymin
+    if rangez == None:
+        rangez = zmax - zmin
 
     if rangex > rangey:
         xratio = 1
         yratio = rangey/rangex
+        zratio = rangez/rangex
     else:
         xratio = rangex/rangey
         yratio = 1
+        zratio = rangez/rangey
 
     if aspect_auto == True:
         layout = go.Layout(
@@ -258,12 +263,21 @@ def scatter3d(x_list, y_list, z_list, scale_list=None, mode_list=None, units_lis
                 aspectmode = 'manual',
                 # automatically make xy axis ratio based on data...z has wide range
                 aspectratio=go.layout.scene.Aspectratio(
-                    x = xratio, y = yratio, z = 1
+                    x = xratio, y = yratio, z = zratio#1
                     )
                 )
         )
 
-    fig = go.Figure(data=data, layout=layout)
+    if fig_ == None:
+        fig = go.Figure(data=data, layout=layout)
+    else:
+        if copy_fig:
+            fig = copy.copy(fig_)
+        else:
+            fig = fig_
+        [fig.add_trace(d) for d in data]
+        fig.layout = layout
+
     # fig['layout'].update(go.layout.Scene(aspectmode='data'))
 
     if filename == None:
@@ -278,7 +292,7 @@ def scatter3d(x_list, y_list, z_list, scale_list=None, mode_list=None, units_lis
     return fig
 
 
-def histo(series_list, names_list=None, xlabel='B (T)', bins=10, opacity=0.9,cut=[0.,1.], yscale='linear', inline=False, title=None, verbosity=2, filename=None):
+def histo(series_list, names_list=None, xlabel='B (T)', bins=10, autobin=True, opacity=0.9,cut=[0.,1.], yscale='linear', inline=False, title=None, verbosity=2, show_plot=True,filename=None):
     traces = []
 
     if type(series_list) != list:
@@ -310,7 +324,25 @@ def histo(series_list, names_list=None, xlabel='B (T)', bins=10, opacity=0.9,cut
         else:
             name = (f'<br>{names_list[idx]}<br>')
 
-        traces.append(go.Histogram(x=series, nbinsx=bins, opacity=opacity,name=name))
+        if autobin:
+            traces.append(go.Histogram(x=series, nbinsx=bins, opacity=opacity,name=name))
+        else:
+            x_min = series.min()
+            x_max = series.max()
+            bin_size = (x_max - x_min) / bins
+            traces.append(
+                go.Histogram(
+                    x=series,
+                    xbins=dict(
+                        start=x_min,
+                        end=x_max,
+                        size=bin_size,
+                    ),
+                    autobinx=False,
+                    opacity=opacity,
+                    name=name
+                )
+            )
 
     data = traces
 
@@ -338,10 +370,11 @@ def histo(series_list, names_list=None, xlabel='B (T)', bins=10, opacity=0.9,cut
     if filename == None:
         filename = 'h_DEFAULT'
 
-    if inline:
-        iplot(fig, filename=hpc_ext_path+'plots/'+filename+'.html')
-    else:
-        plot(fig, filename=hpc_ext_path+'plots/'+filename+'.html')
+    if show_plot:
+        if inline:
+            iplot(fig, filename=hpc_ext_path+'plots/'+filename+'.html')
+        else:
+            plot(fig, filename=hpc_ext_path+'plots/'+filename+'.html')
 
     return fig
 
