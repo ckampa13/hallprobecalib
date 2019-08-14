@@ -8,7 +8,7 @@ from plotly.offline import plot, iplot
 # from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 # init_notebook_mode(connected=True)
 
-def scatter2d(x_list, y_list, size_list=None, lines=True, markers=False, title=None, filename=None, show_plot=True,legend_list=None, inline=False):
+def scatter2d(x_list, y_list, size_list=None, lines=True, width=2, markers=False, title=None, filename=None, show_plot=True,legend_list=None, inline=False):
     traces = []
 
     if type(x_list) != list:
@@ -51,6 +51,9 @@ def scatter2d(x_list, y_list, size_list=None, lines=True, markers=False, title=N
             mode = mode,
             marker=dict(
                 size=size,
+            ),
+            line=dict(
+                width=width,
             ),
             name = name,
         )
@@ -292,7 +295,7 @@ def scatter3d(x_list, y_list, z_list, scale_list=None,scale_unit='ns', mode_list
     return fig
 
 
-def histo(series_list, names_list=None, xlabel='B (T)', bins=10, autobin=True, opacity=0.9,cut=[0.,1.], yscale='linear', inline=False, title=None, verbosity=2, show_plot=True,filename=None):
+def histo(series_list, names_list=None, xlabel=None, bins=10, same_bins=False, autobin=False, opacity=0.9,cut=[0.,1.], range_x=None, yscale='linear', barmode='overlay', horizontal=False,inline=False, title=None, verbosity=2, show_plot=True,filename=None):
     traces = []
 
     if type(series_list) != list:
@@ -304,8 +307,15 @@ def histo(series_list, names_list=None, xlabel='B (T)', bins=10, autobin=True, o
         if type(names_list) != list:
             names_list = list(names_list)
 
+    x_min = series_list[0].min()
+    x_max = series_list[0].max()
+    bin_size = (x_max - x_min) / bins
+
     for idx in range(len(series_list)):
         series = series_list[idx]
+        if range_x != None:
+            range_mask = (series > range_x[0]) & (series < range_x[1])
+            series = series[range_mask]
         c = (series >= series.quantile(cut[0])) & (series <= series.quantile(cut[1]))
         series_list[idx] = series[c]
         series = series[c]
@@ -324,25 +334,48 @@ def histo(series_list, names_list=None, xlabel='B (T)', bins=10, autobin=True, o
         else:
             name = (f'<br>{names_list[idx]}<br>')
 
-        if autobin:
-            traces.append(go.Histogram(x=series, nbinsx=bins, opacity=opacity,name=name))
-        else:
-            x_min = series.min()
-            x_max = series.max()
-            bin_size = (x_max - x_min) / bins
-            traces.append(
-                go.Histogram(
-                    x=series,
-                    xbins=dict(
-                        start=x_min,
-                        end=x_max,
-                        size=bin_size,
-                    ),
-                    autobinx=False,
-                    opacity=opacity,
-                    name=name
+        if not horizontal:
+            if autobin:
+                traces.append(go.Histogram(x=series, nbinsx=bins, opacity=opacity,name=name))
+            else:
+                if not same_bins:
+                    x_min = series.min()
+                    x_max = series.max()
+                    bin_size = (x_max - x_min) / bins
+                traces.append(
+                    go.Histogram(
+                        x=series,
+                        xbins=dict(
+                            start=x_min,
+                            end=x_max,
+                            size=bin_size,
+                        ),
+                        autobinx=False,
+                        opacity=opacity,
+                        name=name
+                    )
                 )
-            )
+        else:
+            if autobin:
+                traces.append(go.Histogram(y=series, nbinsy=bins, opacity=opacity,name=name))
+            else:
+                if not same_bins:
+                    x_min = series.min()
+                    x_max = series.max()
+                    bin_size = (x_max - x_min) / bins
+                traces.append(
+                    go.Histogram(
+                        y=series,
+                        ybins=dict(
+                            start=x_min,
+                            end=x_max,
+                            size=bin_size,
+                        ),
+                        autobiny=False,
+                        opacity=opacity,
+                        name=name
+                    )
+                )
 
     data = traces
 
@@ -351,19 +384,34 @@ def histo(series_list, names_list=None, xlabel='B (T)', bins=10, autobin=True, o
     else:
         title = title + f' Histo: {", ".join([i.name for i in series_list])}'
 
-    layout = go.Layout(
-        title=title,
-        xaxis= dict(
-            title=xlabel
-        ),
-        yaxis=dict(
-            title='Counts',
-            type=yscale,
-            autorange=True
-        ),
-        barmode='overlay',
-        showlegend=True
-    )
+    if not horizontal:
+        layout = go.Layout(
+            title=title,
+            xaxis= dict(
+                title=xlabel
+            ),
+            yaxis=dict(
+                title='Counts',
+                type=yscale,
+                autorange=True
+            ),
+            barmode=barmode,
+            showlegend=True
+        )
+    else:
+        layout = go.Layout(
+            title=title,
+            yaxis= dict(
+                title=xlabel
+            ),
+            xaxis=dict(
+                title='Counts',
+                type=yscale,
+                autorange=True
+            ),
+            barmode=barmode,
+            showlegend=True
+        )
 
     fig = go.Figure(data=data, layout=layout)
 
