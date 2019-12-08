@@ -1,20 +1,47 @@
 import numpy as np
 import copy
+import pandas as pd
 from hallprobecalib import hpc_ext_path
 from plotly import tools
 import plotly.graph_objs as go
 import plotly.figure_factory as FF
 from plotly.offline import plot, iplot
+import plotly.express as px
+from ROOT import TProfile, gDirectory
 # from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 # init_notebook_mode(connected=True)
 
-def scatter2d(x_list, y_list, size_list=None, lines=True, width=2, markers=False, title=None, filename=None, show_plot=True,legend_list=None, inline=False):
+plotly_colors = ['aggrnyl', 'agsunset', 'algae', 'amp', 'armyrose', 'balance',
+                 'blackbody', 'bluered', 'blues', 'blugrn', 'bluyl', 'brbg',
+                 'brwnyl', 'bugn', 'bupu', 'burg', 'burgyl', 'cividis', 'curl',
+                 'darkmint', 'deep', 'delta', 'dense', 'earth', 'edge', 'electric',
+                 'emrld', 'fall', 'geyser', 'gnbu', 'gray', 'greens', 'greys',
+                 'haline', 'hot', 'hsv', 'ice', 'icefire', 'inferno', 'jet',
+                 'magenta', 'magma', 'matter', 'mint', 'mrybm', 'mygbm', 'oranges',
+                 'orrd', 'oryel', 'peach', 'phase', 'picnic', 'pinkyl', 'piyg',
+                 'plasma', 'plotly3', 'portland', 'prgn', 'pubu', 'pubugn', 'puor',
+                 'purd', 'purp', 'purples', 'purpor', 'rainbow', 'rdbu', 'rdgy',
+                 'rdpu', 'rdylbu', 'rdylgn', 'redor', 'reds', 'solar', 'spectral',
+                 'speed', 'sunset', 'sunsetdark', 'teal', 'tealgrn', 'tealrose',
+                 'tempo', 'temps', 'thermal', 'tropic', 'turbid','twilight',
+                 'viridis', 'ylgn', 'ylgnbu', 'ylorbr', 'ylorrd']
+
+def scatter2d(x_list, y_list, colors_list=None, colorscale_list=None, size_list=None, lines=True, width=2, markers=False, title=None, filename=None, show_plot=True,legend_list=None, inline=True):
     traces = []
 
     if type(x_list) != list:
         x_list = [x_list]
     if type(y_list) != list:
         y_list = [y_list]
+
+    if colors_list is not None:
+        markers=True
+        lines=False
+        if type(colors_list) is not list:
+            colors_list = [colors_list]
+        if colorscale_list is None:
+            colorscale_list = plotly_colors[:len(colors_list)]
+            # colorscale_list = len(colors_list)*["Viridis"]
 
     if size_list == None:
         size_list = [2 for i in x_list]
@@ -31,49 +58,79 @@ def scatter2d(x_list, y_list, size_list=None, lines=True, width=2, markers=False
         mode = 'markers'
 
     if title == None:
-        title = f'{y_list[0].name} vs. {x_list[0].name}'
+        try:
+            title = f'{y_list[0].name} vs. {x_list[0].name}'
+        except:
+            title = f'y vs. x'
     else:
-        title = title + f' {y_list[0].name} vs. {x_list[0].name}'
-
+        try:
+            title = title + f' {y_list[0].name} vs. {x_list[0].name}'
+        except:
+            title = title
 
     for idx in range(len(x_list)):
         x = x_list[idx]
         y = y_list[idx]
         size = size_list[idx]
         if legend_list == None:
-            name = y.name
+            try:
+                name = y.name
+            except:
+                name = 'y'
         else:
             name = legend_list[idx]
+        if colors_list is None:
+            marker_ = dict(size=size)
+        else:
+            marker_ = dict(
+                    size=size,
+                    cmax=colors_list[idx].max(),
+                    cmin=colors_list[idx].min(),
+                    color=colors_list[idx],
+                    colorbar=dict(
+                        title=colors_list[idx].name+"<br>",
+                        x=1+0.1*idx,
+                    ),
+                    colorscale=colorscale_list[idx])
         traces.append(
         go.Scatter(
             x = x,
             y = y,
             mode = mode,
-            marker=dict(
-                size=size,
-            ),
+            marker=marker_,
             line=dict(
                 width=width,
             ),
             name = name,
         )
         )
-
     data = traces
 
+    try:
+        xtitle = x_list[0].name
+    except:
+        xtitle = "x"
+
+    try:
+        ytitle = y_list[0].name
+    except:
+        ytitle = "y"
 
     layout = go.Layout(
         title=title,
         xaxis= dict(
-            title=x_list[0].name
+            title=xtitle
         ),
         yaxis=dict(
-            title=y_list[0].name
+            title=ytitle
         ),
         showlegend=True
     )
 
     fig = go.Figure(data=data, layout=layout)
+
+    if colors_list is not None:
+        fig.update_layout(legend=dict(y=1.2))
 
     if filename == None:
         filename = 'scatter2d_DEFAULT'
@@ -87,7 +144,7 @@ def scatter2d(x_list, y_list, size_list=None, lines=True, width=2, markers=False
     return fig
 
 
-def scatter3d(x_list, y_list, z_list, scale_list=None,scale_unit='ns', mode_list=None, units_list=None, colors_list=None, colorbars_list=None, min_color_list=None, max_color_list=None, same_color=False, opacity_list=None, size_list=None, reverse_scale=False, aspect_auto = True, rangex=None, rangey=None, rangez=None ,inline=False, title=None, filename=None, show_plot=True, fig_=None,copy_fig=False):
+def scatter3d(x_list, y_list, z_list, scale_list=None,scale_unit='ns', mode_list=None, units_list=None, colors_list=None, colorbars_list=None, min_color_list=None, max_color_list=None, same_color=False, opacity_list=None, size_list=None, reverse_scale=False, aspect_auto = True, rangex=None, rangey=None, rangez=None ,inline=True, title=None, filename=None, show_plot=True, fig_=None,copy_fig=False):
     '''
     units_list = [('mm','mm','K'),('T','C','cm')] as an example. List contains 3 element tuples for (x units,y units, z units)
     '''
@@ -295,7 +352,7 @@ def scatter3d(x_list, y_list, z_list, scale_list=None,scale_unit='ns', mode_list
     return fig
 
 
-def histo(series_list, names_list=None, xlabel=None, bins=10, same_bins=False, autobin=False, opacity=0.9,cut=[0.,1.], range_x=None, yscale='linear', barmode='overlay', horizontal=False,inline=False, title=None, verbosity=2, show_plot=True,filename=None):
+def histo(series_list, names_list=None, xlabel=None, bins=10, same_bins=False, autobin=False, opacity=0.9,cut=[0.,1.], range_x=None, yscale='linear', barmode='overlay', horizontal=False,inline=True, title=None, verbosity=2, show_plot=True,filename=None):
     traces = []
 
     if type(series_list) != list:
@@ -306,6 +363,9 @@ def histo(series_list, names_list=None, xlabel=None, bins=10, same_bins=False, a
     else:
         if type(names_list) != list:
             names_list = list(names_list)
+
+    if xlabel == None:
+        xlabel = series_list[0].name
 
     x_min = series_list[0].min()
     x_max = series_list[0].max()
@@ -388,12 +448,14 @@ def histo(series_list, names_list=None, xlabel=None, bins=10, same_bins=False, a
         layout = go.Layout(
             title=title,
             xaxis= dict(
-                title=xlabel
+                title=xlabel,
+                showgrid=True
             ),
             yaxis=dict(
                 title='Counts',
                 type=yscale,
-                autorange=True
+                autorange=True,
+                showgrid=True
             ),
             barmode=barmode,
             showlegend=True
@@ -402,12 +464,14 @@ def histo(series_list, names_list=None, xlabel=None, bins=10, same_bins=False, a
         layout = go.Layout(
             title=title,
             yaxis= dict(
-                title=xlabel
+                title=xlabel,
+                showgrid=True
             ),
             xaxis=dict(
                 title='Counts',
                 type=yscale,
-                autorange=True
+                autorange=True,
+                showgrid=True
             ),
             barmode=barmode,
             showlegend=True
@@ -427,7 +491,72 @@ def histo(series_list, names_list=None, xlabel=None, bins=10, same_bins=False, a
     return fig
 
 
-def spherical_scatter3d(phi_list, theta_list, r_list, units_list=None, absval=True, colors_list=None, opacity_list=None, size_list=None,inline=False, title=None, filename=None):
+def py_profile(x, y, x_bins, xrange = None, show_plot=True, return_tprof=False, inline=True):
+    """
+    Args: x, y (Pandas Series), x_bins (int), xrange (None or 2 element list/tuple with xmin
+    and xmax), show_plot (Boolean), return_tprof (Boolean for TProfile object), inline (Boolean)
+    """
+    if xrange==None:
+        xrange= [x.min(), x.max()]
+
+    # Generate TProfile
+    # This might give problems if using ROOT and want things stored...may have to live with
+    # 'potential memory leak' every time function is run
+    root_list = gDirectory.GetList()
+    if len(root_list) != 0:
+        for obj in root_list:
+            if obj.GetName() == "tprof":
+                obj.Delete()
+    tprof = TProfile('tprof', 'Profile Plot', x_bins, xrange[0], xrange[1])
+    for xi,yi in zip(x,y):
+        tprof.Fill(xi,yi)
+
+    # Collect data into Pandas Series
+    bin_centers = []
+    bin_contents = []
+    bin_errors = []
+
+    for i in range(1,x_bins+1):
+        bin_centers.append(tprof.GetBinCenter(i))
+        bin_contents.append(tprof.GetBinContent(i))
+        bin_errors.append(tprof.GetBinError(i))
+
+    bin_centers = pd.Series(bin_centers, name=x.name)
+    bin_contents = pd.Series(bin_contents, name=y.name)
+    bin_errors = pd.Series(bin_errors, name="bin errors")
+
+    x_error = tprof.GetBinWidth(1)/2
+
+    # Plot with Plotly!
+    # Legend to match ROOT TProfile
+    name = (
+        f'<br>{y.name}<br>'
+        f'entries: {len(x)}<br>'
+        f'mean: {x.mean():.3E}<br>'
+        f'mean y: {y.mean():.3E}<br>'
+        f'std dev: {x.std():.3E}<br>'
+        f'std dev y: {y.std():.3E}'
+        )
+
+    fig = scatter2d(bin_centers, bin_contents, lines=False, markers=True, size_list=[1],
+                    title="Profile Plot: ",show_plot=False, inline=True)
+    fig.update_traces(
+        error_x=dict(type="constant", value=x_error, width=0),
+        error_y=dict(type="data", array=bin_errors, width=0, visible=True),
+        name=name,
+    )
+
+    if show_plot:
+        iplot(fig)
+
+    if return_tprof:
+        return fig, tprof
+    else:
+        return fig
+
+
+
+def spherical_scatter3d(phi_list, theta_list, r_list, units_list=None, absval=True, colors_list=None, opacity_list=None, size_list=None,inline=True, title=None, filename=None):
     traces = []
     if type(phi_list) != list:
         phi_list = [phi_list]
