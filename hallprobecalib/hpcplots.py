@@ -26,7 +26,7 @@ plotly_colors = ['aggrnyl', 'agsunset', 'algae', 'amp', 'armyrose', 'balance',
                  'tempo', 'temps', 'thermal', 'tropic', 'turbid','twilight',
                  'viridis', 'ylgn', 'ylgnbu', 'ylorbr', 'ylorrd']
 
-def scatter2d(x_list, y_list, colors_list=None, colorscale_list=None, size_list=None, lines=True, width=2, markers=False, title=None, filename=None, show_plot=True,legend_list=None, inline=True):
+def scatter2d(x_list, y_list, colors_list=None, colorscale_list=None, size_list=None, lines=True,opacity=1., width=2, markers=False, title=None, filename=None, show_plot=True,legend_list=None, inline=True):
     traces = []
 
     if type(x_list) != list:
@@ -84,6 +84,7 @@ def scatter2d(x_list, y_list, colors_list=None, colorscale_list=None, size_list=
         else:
             marker_ = dict(
                     size=size,
+                    opacity=opacity,
                     cmax=colors_list[idx].max(),
                     cmin=colors_list[idx].min(),
                     color=colors_list[idx],
@@ -547,7 +548,10 @@ def py_profile(x, y, x_bins, xrange = None, show_plot=True, return_tprof=False, 
     )
 
     if show_plot:
-        iplot(fig)
+        if inline:
+            iplot(fig)
+        else:
+            plot(fig)
 
     if return_tprof:
         return fig, tprof
