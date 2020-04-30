@@ -3,11 +3,136 @@ import numpy as np
 import scipy.special
 import pandas as pd
 import pickle as pkl
-# import re
 
 from hallprobecalib import hpc_ext_path
 
 
+def voltage_decomp_all(df, kmax, nmax, lmax, sigma):
+    # df contains calibration data with columns:
+    # Bx, By, Bz, t, V0, V1, V2
+
+    # estimate th0 and ph0 for each probe.
+    th0 = {}
+    ph0 = {}
+    for n in [0, 1, 2]:
+        th0[n], ph0[n] = est_angles(df, n)
+
+    # call secondary decomp function given th0 and ph0
+    pararms = {}
+    covs = {}
+    for n in [0, 1, 2]:
+        params[n], covs[n] = voltage_decomp(df, n, th0[n], ph0[n], kmax, nmax, lmax, sigma)
+
+    return params[0], params[1], params[2]
+
+def est_angles(df, n):
+    # n is an int
+    return 0., 0.
+
+def voltage_decomp(df, n, th0, ph0, kmax, nmax, lmax, sigma):
+    #
+
+    # setup to V, thetas, phis, t
+    Vs = df[f"V{n}"].values
+    Bs = ((df["Bx"]**2+df["By"]**2+df["Bz"]**2)**(1/2)).values
+    thetas = (np.arctan2((df["Bx"]**2+df["By"]**2)**(1/2),df["Bz"]) + th0).values
+    phis = (np.arctan2(df["By"],df["Bx"]) + ph0).values
+    ts = df["t"].values
+
+    # return Vs, Bs, thetas, phis, ts
+
+    # params indexes
+    ks = np.arange(0, kmax+1)
+    ns = np.arange(0, nmax+1)
+    ls = np.arange(0, lmax+1)
+
+    # construct G
+    js = []
+    for k in ks:
+        for n in ns:
+            for l in ls:
+                for m in range(0, l+1):
+                    js.append({"k":k,"n":n,"l":l,"m":m})
+    G = []
+    for j in js:
+        # G.append(G_j(Bs, ts, thetas, phis, **j).values)
+        G.append(G_j(Bs, ts, thetas, phis, **j))
+    G = np.array(G).T
+
+    # return G
+
+    #d = Vs # data vector
+    GtG_inv = np.linalg.inv(G.T @ G)
+    m = GtG_inv @ G.T @ Vs
+    # cov
+    m_cov = sigma**2 * GtG_inv
+
+    # print(len(js), len(m))
+
+    # make dict
+    params = {f"c_{j['k']}{j['n']}{j['l']}{j['m']}":m_ for j, m_ in zip(js, m)}
+    # for j, m_ in zip(js, m):
+    #     m_dict[f"c_{j[k]}{j[n]}{j[l]}{j[m]}"] =
+
+    return params, m_cov
+
+
+def G_j(Bs, ts, thetas, phis, k, n, l, m):
+    '''
+    Parameters:
+    length-N numpy.arrays -- Bs (magnetic field),
+    ts (temperature), thetas (polar), phis (azimuthal)
+    int -- k, n, l, m (parameters needed in that column)
+
+    Return: length-N numpy.array -- G_j (column j of G matrix)
+    '''
+    # initialize Chebyshev coefficients
+    cs_k = np.zeros(k+1)
+    cs_k[-1] = 1
+    cs_n = np.zeros(n+1)
+    cs_n[-1] = 1
+    # calculate Chebyshev and Spherical
+    Tk = np.polynomial.chebyshev.chebval(Bs, cs_k)
+    Tn = np.polynomial.chebyshev.chebval(ts, cs_n)
+    Ylm = np.real(scipy.special.sph_harm(m, l, phis, thetas))
+    return Tk * Tn * Ylm
+
+
+
+
+
+class HallProbe(object):
+    def __init__(self, id_str, params_0, params_1, params_2):
+        self.id_str = id_str
+        self.he0 = HallElement(params_0)
+        self.he1 = HallElement(params_1)
+        self.he2 = HallElement(params_2)
+
+    @classmethod
+    def from_pickle(cls, filename):
+        return pkl.load(open(filename, "rb"))
+
+    @classmethod
+    def from_cal_dat(cls, id_str, df, kmax, nmax, lmax, sigma):
+        # df contains calibration data with columns:
+        # Bx, By, Bz, t, V0, V1, V2
+        params_0, params_1, params_2 = voltage_decomp_all(df, kmax, nmax, lmax, sigam)
+        return cls(id_str, params_0, params_1, params_2)
+
+    def V(self, Bx, By, Bz, t):
+        # solve forward problem (given parameters)
+        return
+
+
+    def B(self, V0, V1, V2):
+        # solve inverse problem
+        #ff
+        return
+
+    def to_pickle(self, filename):
+        pkl.dump(self, open(filename, "wb"))
+
+"""
 class HallProbe(object):
     def __init__(self, params_lists, params_truths=3*[None], params_fits=3*[None], theta0s=[np.pi, np.pi/2, np.pi/2], phi0s=[0, np.pi/2, np.pi], calib_data=None, id_str="testprobe"):
         '''
@@ -65,7 +190,7 @@ class HallElement(object):
         # for p in [params_list, params_truth, params_fit, calib_data]
 
     # def
-
+"""
 
 ### FROM INVERSE METHODS FINAL PROJECT ###
 def V_forward(Bs, ts, thetas, phis, **params):
@@ -161,7 +286,7 @@ def gen_data(Bs, ts, thetas, phis, sigma):
 
     return df
 
-
+"""
 def G_j(Bs, ts, thetas, phis, k, n, l, m):
     '''
     Parameters:
@@ -181,7 +306,7 @@ def G_j(Bs, ts, thetas, phis, k, n, l, m):
     Tn = np.polynomial.chebyshev.chebval(ts, cs_n)
     Ylm = np.real(scipy.special.sph_harm(m, l, phis, thetas))
     return Tk * Tn * Ylm
-
+"""
 
 def hall_cal_least_squares(df, params):
     '''

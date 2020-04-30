@@ -7,7 +7,7 @@ import plotly.graph_objs as go
 import plotly.figure_factory as FF
 from plotly.offline import plot, iplot
 import plotly.express as px
-from ROOT import TProfile, gDirectory
+# from ROOT import TProfile, gDirectory
 # from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 # init_notebook_mode(connected=True)
 
@@ -145,7 +145,7 @@ def scatter2d(x_list, y_list, colors_list=None, colorscale_list=None, size_list=
     return fig
 
 
-def scatter3d(x_list, y_list, z_list, scale_list=None,scale_unit='ns', mode_list=None, units_list=None, colors_list=None, colorbars_list=None, min_color_list=None, max_color_list=None, same_color=False, opacity_list=None, size_list=None, reverse_scale=False, aspect_auto = True, rangex=None, rangey=None, rangez=None ,inline=True, title=None, filename=None, show_plot=True, fig_=None,copy_fig=False):
+def scatter3d(x_list, y_list, z_list, scale_list=None,scale_unit='ns', mode_list=None, units_list=None, colors_list=None, colorbars_list=None, min_color_list=None, max_color_list=None, same_color=False, opacity_list=None, size_list=None, reverse_scale=False, aspect_auto = True, rangex=None, rangey=None, rangez=None ,inline=True, title=None, names_list=None, filename=None, show_plot=True, fig_=None,copy_fig=False):
     '''
     units_list = [('mm','mm','K'),('T','C','cm')] as an example. List contains 3 element tuples for (x units,y units, z units)
     '''
@@ -230,9 +230,12 @@ def scatter3d(x_list, y_list, z_list, scale_list=None,scale_unit='ns', mode_list
             showscale = True
             num_colorbars += 1
 
-        name = (f'<br>x: {X.name} ({units[0]})<br>'
-                f'y: {Y.name} ({units[1]})<br>'
-                f'z: {Z.name} ({units[2]})<br>')
+        if names_list is None:
+            name = (f'<br>x: {X.name} ({units[0]})<br>'
+                    f'y: {Y.name} ({units[1]})<br>'
+                    f'z: {Z.name} ({units[2]})<br>')
+        else:
+            name = names_list[idx]
 
         traces.append( go.Scatter3d(
                                     x=X,
@@ -492,6 +495,7 @@ def histo(series_list, names_list=None, xlabel=None, bins=10, same_bins=False, a
     return fig
 
 
+'''
 def py_profile(x, y, x_bins, xrange = None, show_plot=True, return_tprof=False, inline=True):
     """
     Args: x, y (Pandas Series), x_bins (int), xrange (None or 2 element list/tuple with xmin
@@ -557,7 +561,7 @@ def py_profile(x, y, x_bins, xrange = None, show_plot=True, return_tprof=False, 
         return fig, tprof
     else:
         return fig
-
+'''
 
 
 def spherical_scatter3d(phi_list, theta_list, r_list, units_list=None, absval=True, colors_list=None, opacity_list=None, size_list=None,inline=True, title=None, filename=None):
