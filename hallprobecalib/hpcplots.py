@@ -371,8 +371,12 @@ def histo(series_list, names_list=None, xlabel=None, bins=10, same_bins=False, a
     if xlabel == None:
         xlabel = series_list[0].name
 
-    x_min = series_list[0].min()
-    x_max = series_list[0].max()
+    if same_bins:
+        x_min = np.min(np.array([series.min() for series in series_list]))
+        x_max = np.max(np.array([series.max() for series in series_list]))
+    else:
+        x_min = series_list[0].min()
+        x_max = series_list[0].max()
     bin_size = (x_max - x_min) / bins
 
     for idx in range(len(series_list)):
