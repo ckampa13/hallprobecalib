@@ -154,7 +154,7 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol='Yoke (cente
     params.add('C', value=1, min=0, vary=True)
     # fit
     result = model.fit(df_2[ycol].values, x=df_2.run_hours.values,
-                       params=params, weights=1/ystd)
+                       params=params, weights=1/ystd, scale_covar=False)
     # plot
     # label for fit
     label=r'$\underline{y = A + B e^{-x / C}}$'+'\n\n'\
@@ -196,7 +196,7 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol='Yoke (cente
     #ax1.set_xlim([tmin, tmax])
     #ax2.set_xlim([tmin, tmax])
     # turn on legend
-    ax1.legend()
+    ax1.legend().set_zorder(101)
     # add title
     fig.suptitle(f'Temperature Stability Fit: Exponential Decay\nRun Index {run_num}')
     # minor ticks
@@ -213,7 +213,7 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol='Yoke (cente
     # save figure
     fig.savefig(plotfile+'.pdf')
     fig.savefig(plotfile+'.png')
-    # remove first "time constant" of data 
+    # remove first "time constant" of data
     hmax = df_.run_hours.max()
     tau = result.params["C"].value
     # special case (water chiller failed) -- only remove 1/2 time constant
@@ -261,7 +261,7 @@ def process_raw(df_raw, df_info, p_full, p_ramp, p_hyst, p_stable):
     num_cpu = multiprocessing.cpu_count()
     nproc = min([num_cpu, len(df_info)])
     # parallel for loop
-    processed_tuples = Parallel(n_jobs=nproc)(delayed(process_raw_single)(i, df_raw, df_info) for i in tqdm(df_info.index, file=stdout, desc='Run #')) 
+    processed_tuples = Parallel(n_jobs=nproc)(delayed(process_raw_single)(i, df_raw, df_info) for i in tqdm(df_info.index, file=stdout, desc='Run #'))
     # split output
     dfs = [i[0] for i in processed_tuples]
     results = {i:j[1] for i,j in zip(df_info.index, processed_tuples)}
@@ -292,7 +292,7 @@ def process_raw(df_raw, df_info, p_full, p_ramp, p_hyst, p_stable):
 if __name__=='__main__':
     print('Running script: preprocess_data.py')
     time0 = datetime.now()
-    
+
     df_raw = load_save_raw(rawfile, pklraw)
     #df_raw = pd.read_pickle(pklraw)
     probes = get_probe_IDs(df_raw)
@@ -308,9 +308,9 @@ if __name__=='__main__':
     df_hyst = pd.read_pickle(pklproc_hyst)
     results = pkl.load(open(pklfit_stable_temp, "rb" ))
     '''
-    
+
     timef = datetime.now()
-    
+
     '''
     # Optional text output
     print('\nOutput:')
@@ -330,7 +330,7 @@ if __name__=='__main__':
     print(df)
     print('\n')
     '''
-    
+
     print(f'Runtime: {timef-time0} [H:MM:SS])\n')
-    
+
     #plt.show()

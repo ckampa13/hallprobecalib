@@ -13,8 +13,10 @@ pklinfo = pkldir+'ramp_2021-02-24.run-info.pkl'
 pklproc = pkldir+'ramp_2021-02-24.processed-all.pkl'
 pklproc_ramp = pkldir+'ramp_2021-02-24.processed-ramp.pkl'
 pklproc_hyst = pkldir+'ramp_2021-02-24.processed-hyst.pkl'
+pklinfo_regress = pkldir+'ramp_2021-02-24.run-info_regress.pkl'
 # fit pickles
 pklfit_stable_temp = pkldir+'ramp_2021-02-24.stable-temp-fits.pkl'
+pklfit_temp_regress = pkldir+'ramp_2021-02-24.lin-temp-regress-fits.pkl'
 # LaTeX output
 tex_info = plotdir+'final_results/run_info.tex'
 # FEMM

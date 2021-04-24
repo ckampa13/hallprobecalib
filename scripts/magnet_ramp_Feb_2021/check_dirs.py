@@ -8,10 +8,11 @@ p_0 = plotdir+'time/'
 p_0_0 = plotdir+'time/all/'
 p_1 = plotdir+'final_results/'
 p_1_0 = plotdir+'final_results/stable_temp/'
+p_1_1 = plotdir+'final_results/nmr_temp_regress/'
 p_2 = plotdir+'analysis_guides/'
 
 dirs = [pkldir, plotdir,
-        p_0, p_0_0, p_1, p_1_0,
+        p_0, p_0_0, p_1, p_1_0, p_1_1,
         p_2,
        ]
 
