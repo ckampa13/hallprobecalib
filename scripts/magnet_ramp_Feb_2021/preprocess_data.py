@@ -13,7 +13,18 @@ from joblib import Parallel, delayed
 import multiprocessing
 # local imports
 from model_funcs import mod_exp
-from configs import probe, plotdir, rawfile, pklraw, pklinfo, tex_info, pklproc, pklproc_ramp, pklproc_hyst, pklfit_stable_temp
+from configs import (
+    pklfit_stable_temp,
+    pklinfo,
+    pklproc,
+    pklproc_hyst,
+    pklproc_ramp,
+    pklraw,
+    plotdir,
+    probe,
+    rawfile,
+    tex_info,
+)
 from run_info import t0s, tfs, ramps, hysts, adcs
 from plotting import config_plots, datetime_plt, ticks_in
 config_plots()
@@ -26,9 +37,11 @@ def get_probe_IDs(df):
 def load_save_raw(rname, pname):
     # message
     print('Loading raw data into DataFrame')
-    # grab headers from first line in file and format nicely (remove leading/trailing spaces, newline)
+    # grab headers from first line in file and
+    # format nicely (remove leading/trailing spaces, newline)
     with open(rname, 'r') as file:
-        headers = [s.strip(" ").rstrip("\n") for s in str.split(next(file), ',')]
+        headers = [s.strip(" ").rstrip("\n") for s in
+                   str.split(next(file), ',')]
     # load with pandas
     df = pd.read_csv(rname, skiprows=1, names=headers)
     # parse dates and set as index
@@ -48,9 +61,10 @@ def gen_save_info_df(df_raw, t0s, tfs, ramps, hysts, adcs, savename):
     # message
     print('Generating run info DataFrame')
     # construct dataframe from run info (saved in run_info.py)
-    df_info = pd.DataFrame({'t0':t0s, 'tf':tfs, 'ramp':ramps, 'hyst':hysts, 'adc':adcs})
+    df_info = pd.DataFrame({'t0':t0s, 'tf':tfs, 'ramp':ramps,
+                           'hyst':hysts, 'adc':adcs})
     # add column for when chiller went out -- hard-coded date
-    df_info['chiller'] = df_info.t0 < '2021-03-05 14:00:01' # chiller failed after this
+    df_info['chiller'] = df_info.t0 < '2021-03-05 14:00:01'
     # loop through each run to find NMR in range and mean current
     nmrs = []
     Bs = []
@@ -69,11 +83,10 @@ def gen_save_info_df(df_raw, t0s, tfs, ramps, hysts, adcs, savename):
         else:
             nmr = False
         # calculate time of run
-        dhours = (datetime.strptime(row.tf, '%Y-%m-%d %H:%M:%S')-\
-                  datetime.strptime(row.t0, '%Y-%m-%d %H:%M:%S')).total_seconds() / 60 / 60
+        tmax = datetime.strptime(row.tf, '%Y-%m-%d %H:%M:%S')
+        tmin = datetime.strptime(row.t0, '%Y-%m-%d %H:%M:%S')
+        dhours = (tmax-tmin).total_seconds() / 60 / 60
         n = len(df_)
-        #mean_dt = np.mean(np.diff(df_.index) * 1e-9).item()
-        #hours_mean = mean_dt * n / 60 / 60
         # append to lists
         nmrs.append(nmr)
         Bs.append(B)
@@ -95,19 +108,24 @@ def timing_checks_latex(df_raw, df_info, writefile):
     print('Writing LaTeX run info table')
     # write header
     out_str = '\\begin{table}[h]\n'
-    out_str += '\\caption{Detailed measurement information. The main ramping measurement was monotonic in current '\
-    +'and was preceded and succeeded by hysteresis measurements (n.b. "PS ADC"$=$Power Supply ADC)}\n'\
-    +'\\begin{adjustwidth}{-2cm}{}\n'
+    out_str += ('\\caption{Detailed measurement information. The main ramping'+
+                ' measurement was monotonic in current and was preceded and'+
+                ' succeeded by hysteresis measurements (n.b. "PS ADC"$=$Power'+
+                ' Supply ADC)}\n\\begin{adjustwidth}{-2cm}{}\n')
     out_str += '\\begin{tabular}{|r|r|r|l|l|r|r|c|c|c|c|}\n\\hline\n'
-    out_str += 'Index & \\begin{tabular}[c]{@{}l@{}}Current\\\\(mean)\\end{tabular} & PS ADC & Start Time &'\
-    +'End Time & \\begin{tabular}[c]{@{}l@{}}Hours\\\\Data\\end{tabular} &'\
-    +' \\begin{tabular}[c]{@{}l@{}}\\# \\\\Meas.\\end{tabular} & Ramp? &'\
-    +'\\begin{tabular}[c]{@{}l@{}}Hys-\\\\teresis?\\end{tabular} &'\
-    +'Chiller? & \\begin{tabular}[c]{@{}l@{}}NMR in\\\\range?\\end{tabular} \\\\ \\hline \\hline\n'
+    out_str += ('Index & \\begin{tabular}[c]{@{}l@{}}Current\\\\(mean)'+
+                '\\end{tabular} & PS ADC & Start Time & End Time &'+
+                ' \\begin{tabular}[c]{@{}l@{}}Hours\\\\Data\\end{tabular} &'+
+                ' \\begin{tabular}[c]{@{}l@{}}\\# \\\\Meas.\\end{tabular} &'+
+                ' Ramp? & \\begin{tabular}[c]{@{}l@{}}Hys-\\\\teresis?'+
+                '\\end{tabular} & Chiller? & \\begin{tabular}[c]{@{}l@{}}'+
+                'NMR in\\\\range?\\end{tabular} \\\\ \\hline \\hline\n')
     # loop - write a line in the table for each row in the info df
     for i, row in enumerate(df_info.itertuples()):
         # add all numerical/string values
-        out_str += f'${i}$ & ${row.I:0.3f}$ & ${row.adc}$ & {row.t0[5:-3]} & {row.tf[5:-3]} & ${row.hours_data:0.1f}$ & ${row.num_meas}$ &'
+        out_str += (f'${i}$ & ${row.I:0.3f}$ & ${row.adc}$ & {row.t0[5:-3]} &'+
+                    f' {row.tf[5:-3]} & ${row.hours_data:0.1f}$ &'+
+                    f' ${row.num_meas}$ &')
         # check boolean columns and add a checkmark
         if row.ramp:
             out_str += ' \\checkmark &'
@@ -126,13 +144,15 @@ def timing_checks_latex(df_raw, df_info, writefile):
         # end line and add horizontal line
         out_str += ' \\\\ \\hline\n'
     # write footer
-    out_str += '\\end{tabular}\n\\end{adjustwidth}\n\\label{tab:data}\n\\end{table}\n'
+    out_str += ('\\end{tabular}\n\\end{adjustwidth}\n\\label{tab:data}\n'+
+                '\\end{table}\n')
     # write to file
     with open(writefile, 'w') as f:
         f.write(out_str)
     return out_str
 
-def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol='Yoke (center magnet)', ystd=5e-2, ystd_sf=0.01):
+def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
+                           ystd_sf):
     # query raw data to get run
     df_i = df_info.iloc[run_num]
     df_ = df_raw.query(f'"{df_i.t0}" < index < "{df_i.tf}"').copy()
@@ -169,18 +189,24 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol='Yoke (cente
     ax2 = fig.add_axes((0.1, 0.11, 0.8, 0.2))
     # plot data and fit
     # data
-    ax1.errorbar(df_2.index.values, df_2[ycol].values, yerr=ystd_sf*ystd, fmt='o', ls='none', ms=2, label=r'Data (error $\times$'+f'{ystd_sf})', zorder=100)
+    ax1.errorbar(df_2.index.values, df_2[ycol].values, yerr=ystd_sf*ystd,
+                 fmt='o', ls='none', ms=2, zorder=100,
+                 label=r'Data (error $\times$'+f'{ystd_sf})')
     # fit
-    ax1.plot(df_2.index.values, result.best_fit, linewidth=2, color='red', label=label, zorder=99)
+    ax1.plot(df_2.index.values, result.best_fit, linewidth=2, color='red',
+             zorder=99, label=label)
     # calculate residual (data - fit)
     res = df_2[ycol].values - result.best_fit
     # calculate ylimit for ax2
     yl = 1.1*(np.max(np.abs(res)) + ystd_sf*ystd[0])
     # plot residual
     # zero-line
-    ax2.plot([np.min(df_2.index.values), np.max(df_2.index.values)], [0, 0], 'k--', linewidth=2)
+    xmin = np.min(df_2.index.values)
+    xmax = np.max(df_2.index.values)
+    ax2.plot([xmin, xmax], [0, 0], 'k--', linewidth=2, zorder=98)
     # residual
-    ax2.errorbar(df_2.index.values, res, yerr=ystd_sf*ystd, fmt='o', ls='none', ms=2, zorder=99)
+    ax2.errorbar(df_2.index.values, res, yerr=ystd_sf*ystd, fmt='o', ls='none',
+                 ms=2, zorder=99)
     # formatting
     # set ylimit ax2
     ax2.set_ylim([-yl, yl])
@@ -198,12 +224,14 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol='Yoke (cente
     # turn on legend
     ax1.legend().set_zorder(101)
     # add title
-    fig.suptitle(f'Temperature Stability Fit: Exponential Decay\nRun Index {run_num}')
+    fig.suptitle(f'Temperature Stability Fit: Exponential Decay\n'+
+                 f'Run Index {run_num}')
     # minor ticks
     ax1.yaxis.set_minor_locator(AutoMinorLocator())
     ax2.yaxis.set_minor_locator(AutoMinorLocator())
     # inward ticks and ticks on right and top
-    ax1.tick_params(which='both', direction='in', top=True, right=True, bottom=True)
+    ax1.tick_params(which='both', direction='in', top=True, right=True,
+                    bottom=True)
     ax2.tick_params(which='both', direction='in', top=True, right=True)
     # tick label format consistent
     formatter = DateFormatter('%m-%d %H:%M')
@@ -246,7 +274,10 @@ def process_raw_single(run_num, df_raw, df_info):
     # generate plot file name
     pf = plotdir+f'final_results/stable_temp/run-{run_num}_temp_fit'
     # fit + plot temperature stability
-    result, df_, fig, ax1, ax2 = fit_temperature_stable(run_num, df_info, df_raw, plotfile=pf, ycol='Yoke (center magnet)', ystd=0.014, ystd_sf=1)
+    temp = fit_temperature_stable(run_num, df_info, df_raw, plotfile=pf,
+                                  ycol='Yoke (center magnet)', ystd=0.014,
+                                  ystd_sf=1)
+    result, df_, fig, ax1, ax2 = temp
     # filter based on NMR 2 times
     df_ = filter_outliers(None, df_, nsig=7, ycol='NMR [T]')
     df_ = filter_outliers(None, df_, nsig=7, ycol='NMR [T]')
@@ -259,19 +290,24 @@ def process_raw(df_raw, df_info, p_full, p_ramp, p_hyst, p_stable):
     probes = get_probe_IDs(df_raw)
     # get CPU information
     num_cpu = multiprocessing.cpu_count()
-    nproc = min([num_cpu, len(df_info)])
+    njs = min([num_cpu, len(df_info)])
     # parallel for loop
-    processed_tuples = Parallel(n_jobs=nproc)(delayed(process_raw_single)(i, df_raw, df_info) for i in tqdm(df_info.index, file=stdout, desc='Run #'))
+    temp = (Parallel(n_jobs=njs)
+                (delayed(process_raw_single)(i, df_raw, df_info) for i in
+                 tqdm(df_info.index, file=stdout, desc='Run #'))
+            )
     # split output
-    dfs = [i[0] for i in processed_tuples]
-    results = {i:j[1] for i,j in zip(df_info.index, processed_tuples)}
+    dfs = [i[0] for i in temp]
+    results = {i:j[1] for i,j in zip(df_info.index, temp)}
     # concatenate for cleaned dataframe
     df = pd.concat(dfs)
     # calculations for Hall probes
     for p in probes:
         # magnitudes
-        df[f'{p}_Cal_Bmag'] = (df[f'{p}_Cal_X']**2 + df[f'{p}_Cal_Y']**2 + df[f'{p}_Cal_Z']**2)**(1/2)
-        df[f'{p}_Raw_Bmag'] = (df[f'{p}_Raw_X']**2 + df[f'{p}_Raw_Y']**2 + df[f'{p}_Raw_Z']**2)**(1/2)
+        df[f'{p}_Cal_Bmag'] = (df[f'{p}_Cal_X']**2 + df[f'{p}_Cal_Y']**2 +
+                               df[f'{p}_Cal_Z']**2)**(1/2)
+        df[f'{p}_Raw_Bmag'] = (df[f'{p}_Raw_X']**2 + df[f'{p}_Raw_Y']**2 +
+                               df[f'{p}_Raw_Z']**2)**(1/2)
         # B field angles
         df[f'{p}_Cal_Theta'] = np.arccos(df[f'{p}_Cal_Z']/df[f'{p}_Cal_Bmag'])
         df[f'{p}_Cal_Phi'] = np.arctan2(df[f'{p}_Cal_Y'],df[f'{p}_Cal_X'])
@@ -300,7 +336,9 @@ if __name__=='__main__':
     #df_info = pd.read_pickle(pklinfo)
     tex_info_str = timing_checks_latex(df_raw, df_info, writefile=tex_info)
     # run processing of raw data
-    df, df_ramp, df_hyst, results = process_raw(df_raw, df_info, pklproc, pklproc_ramp, pklproc_hyst, pklfit_stable_temp)
+    temp = process_raw(df_raw, df_info, pklproc, pklproc_ramp, pklproc_hyst,
+                       pklfit_stable_temp)
+    df, df_ramp, df_hyst, results = temp
     '''
     # Load pickles
     df = pd.read_pickle(pklproc)

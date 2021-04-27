@@ -11,8 +11,15 @@ from joblib import Parallel, delayed
 import multiprocessing
 # local imports
 from model_funcs import mod_lin
-#from configs import probe, plotdir, pklinfo, pklproc, pklinfo_regress, pklfit_temp_regress_nmr, pklfit_temp_regress_hall
-from configs import probe, plotdir, pklinfo, pklproc, pklfit_temp_regress_nmr, pklfit_temp_regress_hall, pklfit_temp_regress_hall_w_nmr
+from configs import (
+    pklfit_temp_hall,
+    pklfit_temp_hall_nmr,
+    pklfit_temp_nmr,
+    pklinfo,
+    pklproc,
+    plotdir,
+    probe,
+)
 from plotting import config_plots
 config_plots()
 
@@ -23,7 +30,8 @@ def load_preprocessed_pkls(pklinfo, pklproc):
     df = pd.read_pickle(pklproc)
     return df_info, df
 
-def linear_temperature_regression(run_num, df, plotfile, xcol='Yoke (center magnet)', ycol='NMR [T]', ystd=5e-6, ystd_sf=1):
+def linear_temperature_regression(run_num, df, plotfile, xcol, ycol, ystd,
+                                  ystd_sf):
     # query preprocessed data to get run
     df_ = df.query(f'run_num == {run_num}').copy()
     # create an array for weights if float supplied
@@ -49,24 +57,34 @@ def linear_temperature_regression(run_num, df, plotfile, xcol='Yoke (center magn
     fig = plt.figure()
     ax1 = fig.add_axes((0.1, 0.31, 0.7, 0.6))
     ax2 = fig.add_axes((0.1, 0.08, 0.7, 0.2))
+    # colorbar axis
     cb_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
     # plot data and fit
     # data
-    ax1.errorbar(df_[xcol].values, df_[ycol].values, yerr=ystd_sf*ystd, fmt='o', ls='none', ms=2, label=r'Data (error $\times$'+f'{ystd_sf})', zorder=100)
-    #sc = ax1.scatter(df_[xcol].values, df_[ycol].values, c=df_['run_hours'], s=1, zorder=101)
-    sc = ax1.scatter(df_[xcol].values, df_[ycol].values, c=df_.index, s=1, zorder=101)
+    # with errorbars
+    ax1.errorbar(df_[xcol].values, df_[ycol].values, yerr=ystd_sf*ystd,
+                 fmt='o', ls='none', ms=2, zorder=100,
+                 label=r'Data (error $\times$'+f'{ystd_sf})')
+    # scatter with color
+    sc = ax1.scatter(df_[xcol].values, df_[ycol].values, c=df_.index, s=1,
+                     zorder=101)
     # fit
-    ax1.plot(df_[xcol].values, result.best_fit, linewidth=2, color='red', label=label, zorder=99)
+    ax1.plot(df_[xcol].values, result.best_fit, linewidth=2, color='red',
+             zorder=99, label=label)
     # calculate residual (data - fit)
     res = df_[ycol].values - result.best_fit
     # calculate ylimit for ax2
     yl = 1.1*(np.max(np.abs(res)) + ystd_sf*ystd[0])
     # plot residual
     # zero-line
-    ax2.plot([np.min(df_[xcol].values), np.max(df_[xcol].values)], [0, 0], 'k--', linewidth=2)
+    xmin = np.min(df_[xcol].values)
+    xmax = np.max(df_[xcol].values)
+    ax2.plot([xmin, xmax], [0, 0], 'k--', linewidth=2, zorder=98)
     # residual
-    ax2.errorbar(df_[xcol].values, res, yerr=ystd_sf*ystd, fmt='o', ls='none', ms=2, zorder=99)
+    ax2.errorbar(df_[xcol].values, res, yerr=ystd_sf*ystd, fmt='o', ls='none',
+                 ms=2, zorder=99)
     ax2.scatter(df_[xcol].values, res, c=df_.index, s=1, zorder=101)
+    # colorbar for ax1
     cb = fig.colorbar(sc, cax=cb_ax)
     cb.ax.set_yticklabels(df_.index.strftime('%m-%d %H:%M'))
     # formatting
@@ -94,14 +112,16 @@ def linear_temperature_regression(run_num, df, plotfile, xcol='Yoke (center magn
     # turn on legend
     ax1.legend().set_zorder(102)
     # add title
-    fig.suptitle(f'{title_prefix} vs. Temperature Regression: Linear Model\nRun Index {run_num}')
+    fig.suptitle(f'{title_prefix} vs. Temperature Regression: Linear Model\n'+
+                 f'Run Index {run_num}')
     # minor ticks
     ax1.xaxis.set_minor_locator(AutoMinorLocator())
     ax2.xaxis.set_minor_locator(AutoMinorLocator())
     ax1.yaxis.set_minor_locator(AutoMinorLocator())
     ax2.yaxis.set_minor_locator(AutoMinorLocator())
     # inward ticks and ticks on right and top
-    ax1.tick_params(which='both', direction='in', top=True, right=True, bottom=True)
+    ax1.tick_params(which='both', direction='in', top=True, right=True,
+                    bottom=True)
     ax2.tick_params(which='both', direction='in', top=True, right=True)
     # save figure
     fig.savefig(plotfile+'.pdf')
@@ -109,45 +129,67 @@ def linear_temperature_regression(run_num, df, plotfile, xcol='Yoke (center magn
     return result, fig, ax1, ax2
 
 # NMR
-def run_nmr_regression_all(df, df_info, pklfit_temp_regress_nmr):
+def run_nmr_regression_all(df, df_info, pklfit_temp_nmr):
     # message
     print('Running linear NMR vs. temperature regression')
     # generate filenames
-    pfiles = [plotdir+f'final_results/nmr_temp_regress/nmr_run-{i}_lin_temp_regress_fit' for i in df_info.index]
+    pfiles = [(plotdir+f'final_results/nmr_temp_regress/nmr_run-{i}_lin_temp'+
+               f'_regress_fit') for i in df_info.index]
     # get CPU information
     num_cpu = multiprocessing.cpu_count()
     nproc = min([num_cpu, len(df_info)])
     # parallel for loop
-    processed_tuples = Parallel(n_jobs=nproc)(delayed(linear_temperature_regression)(i, df, pf, xcol='Yoke (center magnet)', ycol='NMR [T]', ystd=1e-6, ystd_sf=1) for i,pf in tqdm(zip(df_info.index, pfiles), file=stdout, desc='Run #', total=len(df_info)))
+    temp = (Parallel(n_jobs=nproc)
+            (delayed(linear_temperature_regression)
+             (i, df, pf, xcol='Yoke (center magnet)', ycol='NMR [T]',
+             ystd=1e-6, ystd_sf=1) for i,pf in
+             tqdm(zip(df_info.index, pfiles), file=stdout,desc='Run #',
+                  total=len(df_info))
+             )
+            )
     # split output
-    results = {i:j[0] for i,j in zip(df_info.index, processed_tuples)}
+    results = {i:j[0] for i,j in zip(df_info.index, temp)}
     # pickle results
-    pkl.dump(results, open(pklfit_temp_regress_nmr, "wb" ))
+    pkl.dump(results, open(pklfit_temp_nmr, "wb" ))
     return results
 
 # Hall probes
-def run_hall_regression_all(probe, df, df_info, results_nmr, pklfit_temp_regress_hall):
+# No NMR
+def run_hall_regression_all(probe, df, df_info, pklfit_temp_hall):
     # message
     print('Running linear Hall vs. temperature regression (No NMR)')
     # generate filenames
-    pfiles = [plotdir+f'final_results/hall_temp_regress/hall_run-{i}_lin_temp_regress_fit' for i in df_info.index]
+    pfiles = [(plotdir+f'final_results/hall_temp_regress/hall_run-{i}_lin'+
+               f'_temp_regress_fit') for i in df_info.index]
     # get CPU information
     num_cpu = multiprocessing.cpu_count()
     nproc = min([num_cpu, len(df_info)])
     # parallel for loop
-    processed_tuples = Parallel(n_jobs=nproc)(delayed(linear_temperature_regression)(i, df, pf, xcol='Yoke (center magnet)', ycol=f'{probe}_Cal_Bmag', ystd=3e-5, ystd_sf=1) for i,pf in tqdm(zip(df_info.index, pfiles), file=stdout, desc='Run #', total=len(df_info)))
+    temp = (Parallel(n_jobs=nproc)
+            (delayed(linear_temperature_regression)
+             (i, df, pf, xcol='Yoke (center magnet)',
+              ycol=f'{probe}_Cal_Bmag', ystd=3e-5, ystd_sf=1) for i,pf in
+             tqdm(zip(df_info.index, pfiles), file=stdout, desc='Run #',
+                  total=len(df_info))
+             )
+            )
     # split output
-    results = {i:j[0] for i,j in zip(df_info.index, processed_tuples)}
+    results = {i:j[0] for i,j in zip(df_info.index, temp)}
     # pickle results
-    pkl.dump(results, open(pklfit_temp_regress_hall, "wb" ))
+    pkl.dump(results, open(pklfit_temp_hall, "wb" ))
     return results
 
+# Use NMR results
+def run_hall_nmr_regression_all(probe, df, df_info, results_nmr,
+                                pklfit_temp_hall):
+    # message
+    print('Running linear Hall vs. temperature regression (No NMR)')
     # results = {}
     # for run_num in df_info.index:
     #     pfile = plotdir+f'final_results/hall_temp_regress/hall_run-{run_num}_lin_temp_regress_fit'
     #     result, fig, ax1, ax2 = linear_temperature_regression(run_num, df, pfile, xcol='Yoke (center magnet)', ycol=f'{probe}_Cal_Bmag', ystd=3e-5, ystd_sf=1)
     #     results[run_num] = result
-    # pkl.dump(results, open(pklfit_temp_regress_hall, "wb" ))
+    # pkl.dump(results, open(pklfit_temp_hall, "wb" ))
     # return results
     '''
     pfile = plotdir+f'final_results/hall_temp_regress/hall_run-{run_num}_lin_temp_regress_fit'
@@ -168,20 +210,23 @@ if __name__=='__main__':
     df_info, df = load_preprocessed_pkls(pklinfo, pklproc)
     # test 1 NMR temperature regress
     #run_num = 0
-    #pf = plotdir+f'final_results/nmr_temp_regress/run-{run_num}_lin_temp_regress_fit'
-    #linear_temperature_regression(run_num, df, pf, xcol='Yoke (center magnet)', ycol='NMR [T]', ystd=5e-6, ystd_sf=1)
+    #pf = (plotdir+f'final_results/nmr_temp_regress/run-{run_num}_lin_temp'+
+    #      '_regress_fit')
+    #_ = linear_temperature_regression(run_num, df, pf,
+    #                                  xcol='Yoke (center magnet)',
+    #                                  ycol='NMR [T]', ystd=5e-6, ystd_sf=1)
     # NMR linear temperature regression
-    results_nmr = run_nmr_regression_all(df, df_info, pklfit_temp_regress_nmr)
+    results_nmr = run_nmr_regression_all(df, df_info, pklfit_temp_nmr)
     # load pickle
-    #results_nmr = pkl.load(open(pklfit_temp_regress_nmr, 'rb'))
+    #results_nmr = pkl.load(open(pklfit_temp_nmr, 'rb'))
     # Hall linear temperature regression
     # standard regression
-    results_hall = run_hall_regression_all(probe, df, df_info, results_nmr, pklfit_temp_regress_hall)
-    # include
+    results_hall = run_hall_regression_all(probe, df, df_info,
+                                           pklfit_temp_hall)
 
     # test without NMR
     #run_num = 5 # 4 # 3
-    #result_hall = run_hall_regression_single(run_num, probe, df, df_info, results_nmr, pklfit_temp_regress_hall)
+    #result_hall = run_hall_regression_single(run_num, probe, df, df_info, results_nmr, pklfit_temp_hall)
     # test with NMR
 
     timef = datetime.now()

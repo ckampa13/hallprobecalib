@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-# from matplotlib.dates import date2num, RRuleLocator, rrulewrapper, DateFormatter, HourLocator
 from matplotlib.dates import DateFormatter, HourLocator
 from datetime import datetime
 
@@ -15,10 +14,11 @@ def config_plots():
         plt.rcParams.update({"text.usetex": True})
 
 # datetime plot format for matplotlib
-def datetime_plt(ax, x_datetime, y, s=5, label=None, nmaj=8):
-    ax.plot_date(x_datetime, y, markersize=s, label=label)
-    run_hours = (datetime.strptime(np.max(x_datetime), '%Y-%m-%d %H:%M:%S')-\
-                -datetime.strptime(row.t0, '%Y-%m-%d %H:%M:%S')).total_seconds() / 60 / 60
+def datetime_plt(ax, x_dt, y, s=5, label=None, nmaj=8):
+    ax.plot_date(x_dt, y, markersize=s, label=label)
+    xmax = datetime.strptime(np.max(x_dt), '%Y-%m-%d %H:%M:%S')
+    xmin = datetime.strptime(row.t0,'%Y-%m-%d %H:%M:%S')
+    run_hours = (xmax-xmin).total_seconds() / (60**2)
     interv = int(run_hours // nmaj)
     if interv == 0:
         interv = 1
@@ -27,9 +27,9 @@ def datetime_plt(ax, x_datetime, y, s=5, label=None, nmaj=8):
     formatter = DateFormatter('%m-%d %H:%M')
     ax.xaxis.set_major_formatter(formatter)
     ax.xaxis.set_tick_params(rotation=30)
-    
+
     return ax
-    
+
 def ticks_in(ax):
     ax.tick_params(which='both', direction='in')
     return ax
