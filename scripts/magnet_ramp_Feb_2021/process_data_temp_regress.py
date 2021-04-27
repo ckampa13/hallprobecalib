@@ -11,7 +11,8 @@ from joblib import Parallel, delayed
 import multiprocessing
 # local imports
 from model_funcs import mod_lin
-from configs import probe, plotdir, pklinfo, pklproc, pklinfo_regress, pklfit_temp_regress
+#from configs import probe, plotdir, pklinfo, pklproc, pklinfo_regress, pklfit_temp_regress_nmr, pklfit_temp_regress_hall
+from configs import probe, plotdir, pklinfo, pklproc, pklfit_temp_regress_nmr, pklfit_temp_regress_hall, pklfit_temp_regress_hall_w_nmr
 from plotting import config_plots
 config_plots()
 
@@ -40,7 +41,7 @@ def linear_temperature_regression(run_num, df, plotfile, xcol='Yoke (center magn
     # plot
     # label for fit
     label=r'$\underline{y = A + B x}$'+'\n\n'\
-          +rf'$A = {result.params["A"].value:0.2f}$'+'\n'\
+          +rf'$A = {result.params["A"].value:0.4f}$'+'\n'\
           +rf'$B = {result.params["B"].value:0.3E}$'+'\n'\
           +rf'$\chi^2_\mathrm{{red.}} = {result.redchi:0.2f}$'+'\n\n'
     # set up figure with two axes
@@ -69,6 +70,13 @@ def linear_temperature_regression(run_num, df, plotfile, xcol='Yoke (center magn
     cb = fig.colorbar(sc, cax=cb_ax)
     cb.ax.set_yticklabels(df_.index.strftime('%m-%d %H:%M'))
     # formatting
+    # kludge for NMR or Hall
+    if ycol == 'NMR [T]':
+        ylabel1 = r'$|B|_\mathrm{NMR}$ [T]'
+        title_prefix = 'NMR'
+    else:
+        ylabel1 = r'$|B|_\mathrm{Hall}$ [T]'
+        title_prefix = 'Hall Probe'
     # set ylimit ax2
     ax2.set_ylim([-yl, yl])
     # remove ticklabels for ax1 xaxis
@@ -76,7 +84,7 @@ def linear_temperature_regression(run_num, df, plotfile, xcol='Yoke (center magn
     # axis labels
     ax2.set_xlabel(r'Yoke (center magnet) Temp. [$^{\circ}$C]')
     ax2.set_ylabel('(Data - Fit) [T]')
-    ax1.set_ylabel(r'$|B|_\mathrm{NMR}$ [T]')
+    ax1.set_ylabel(ylabel1)
     # force consistent x axis range for ax1 and ax2
     tmin = np.min(df_[xcol].values)
     tmax = np.max(df_[xcol].values)
@@ -86,7 +94,7 @@ def linear_temperature_regression(run_num, df, plotfile, xcol='Yoke (center magn
     # turn on legend
     ax1.legend().set_zorder(102)
     # add title
-    fig.suptitle(f'NMR vs. Temperature Regression: Linear Model\nRun Index {run_num}')
+    fig.suptitle(f'{title_prefix} vs. Temperature Regression: Linear Model\nRun Index {run_num}')
     # minor ticks
     ax1.xaxis.set_minor_locator(AutoMinorLocator())
     ax2.xaxis.set_minor_locator(AutoMinorLocator())
@@ -100,11 +108,12 @@ def linear_temperature_regression(run_num, df, plotfile, xcol='Yoke (center magn
     fig.savefig(plotfile+'.png')
     return result, fig, ax1, ax2
 
-def run_regression_all(df, df_info, pklinfo_regress, pklfit_temp_regress):
+# NMR
+def run_nmr_regression_all(df, df_info, pklfit_temp_regress_nmr):
     # message
     print('Running linear NMR vs. temperature regression')
     # generate filenames
-    pfiles = [plotdir+f'final_results/nmr_temp_regress/run-{i}_lin_temp_regress_fit' for i in df_info.index]
+    pfiles = [plotdir+f'final_results/nmr_temp_regress/nmr_run-{i}_lin_temp_regress_fit' for i in df_info.index]
     # get CPU information
     num_cpu = multiprocessing.cpu_count()
     nproc = min([num_cpu, len(df_info)])
@@ -113,9 +122,44 @@ def run_regression_all(df, df_info, pklinfo_regress, pklfit_temp_regress):
     # split output
     results = {i:j[0] for i,j in zip(df_info.index, processed_tuples)}
     # pickle results
-    pkl.dump(results, open(pklfit_temp_regress, "wb" ))
+    pkl.dump(results, open(pklfit_temp_regress_nmr, "wb" ))
     return results
 
+# Hall probes
+def run_hall_regression_all(probe, df, df_info, results_nmr, pklfit_temp_regress_hall):
+    # message
+    print('Running linear Hall vs. temperature regression (No NMR)')
+    # generate filenames
+    pfiles = [plotdir+f'final_results/hall_temp_regress/hall_run-{i}_lin_temp_regress_fit' for i in df_info.index]
+    # get CPU information
+    num_cpu = multiprocessing.cpu_count()
+    nproc = min([num_cpu, len(df_info)])
+    # parallel for loop
+    processed_tuples = Parallel(n_jobs=nproc)(delayed(linear_temperature_regression)(i, df, pf, xcol='Yoke (center magnet)', ycol=f'{probe}_Cal_Bmag', ystd=3e-5, ystd_sf=1) for i,pf in tqdm(zip(df_info.index, pfiles), file=stdout, desc='Run #', total=len(df_info)))
+    # split output
+    results = {i:j[0] for i,j in zip(df_info.index, processed_tuples)}
+    # pickle results
+    pkl.dump(results, open(pklfit_temp_regress_hall, "wb" ))
+    return results
+
+    # results = {}
+    # for run_num in df_info.index:
+    #     pfile = plotdir+f'final_results/hall_temp_regress/hall_run-{run_num}_lin_temp_regress_fit'
+    #     result, fig, ax1, ax2 = linear_temperature_regression(run_num, df, pfile, xcol='Yoke (center magnet)', ycol=f'{probe}_Cal_Bmag', ystd=3e-5, ystd_sf=1)
+    #     results[run_num] = result
+    # pkl.dump(results, open(pklfit_temp_regress_hall, "wb" ))
+    # return results
+    '''
+    pfile = plotdir+f'final_results/hall_temp_regress/hall_run-{run_num}_lin_temp_regress_fit'
+    # if NMR is in range, use new regression function (just add a constant to NMR fit)
+    if df_info.iloc[run_num].NMR:
+        result, fig, ax1, ax2 = hall_regression_from_nmr(run_num, df, results_nmr)
+    # otherwise run the same regression as for NMR
+    else:
+        result, fig, ax1, ax2 = linear_temperature_regression(run_num, df, pfile, xcol='Yoke (center magnet)', ycol=f'{probe}_Cal_Bmag', ystd=3e-5, ystd_sf=1)
+    fig.show()
+    return result
+    '''
 
 if __name__=='__main__':
     print('Running script: process_data_temp_regress.py')
@@ -127,6 +171,18 @@ if __name__=='__main__':
     #pf = plotdir+f'final_results/nmr_temp_regress/run-{run_num}_lin_temp_regress_fit'
     #linear_temperature_regression(run_num, df, pf, xcol='Yoke (center magnet)', ycol='NMR [T]', ystd=5e-6, ystd_sf=1)
     # NMR linear temperature regression
-    results = run_regression_all(df, df_info, pklinfo_regress, pklfit_temp_regress)
+    results_nmr = run_nmr_regression_all(df, df_info, pklfit_temp_regress_nmr)
+    # load pickle
+    #results_nmr = pkl.load(open(pklfit_temp_regress_nmr, 'rb'))
+    # Hall linear temperature regression
+    # standard regression
+    results_hall = run_hall_regression_all(probe, df, df_info, results_nmr, pklfit_temp_regress_hall)
+    # include
+
+    # test without NMR
+    #run_num = 5 # 4 # 3
+    #result_hall = run_hall_regression_single(run_num, probe, df, df_info, results_nmr, pklfit_temp_regress_hall)
+    # test with NMR
+
     timef = datetime.now()
     print(f'Runtime: {timef-time0} [H:MM:SS])\n')

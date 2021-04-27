@@ -11,6 +11,9 @@ python check_dirs.py
 # preprocess data
 #python preprocess_data.py
 # process data (temperature regression)
+# NEEDS HANDLING HALL PROBES
 python process_data_temp_regress.py
+# B vs. I with temperature regressed data
+# python B_vs_I_no_temp.py
 
 # read -p "Press any key to resume ..."
