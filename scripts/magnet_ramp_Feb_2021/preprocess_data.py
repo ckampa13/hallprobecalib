@@ -177,11 +177,11 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
                        params=params, weights=1/ystd, scale_covar=False)
     # plot
     # label for fit
-    label=r'$\underline{y = A + B e^{-x / C}}$'+'\n\n'\
-          +rf'$A = {result.params["A"].value:0.2f}$'+'\n'\
-          +rf'$B = {result.params["B"].value:0.2f}$'+'\n'\
-          +rf'$C = {result.params["C"].value:0.2f}$'+'\n'\
-          +rf'$\chi^2_\mathrm{{red.}} = {result.redchi:0.2f}$'+'\n\n'
+    label= (r'$\underline{y = A + B e^{-x / C}}$'+'\n\n'+
+            rf'$A = {result.params["A"].value:0.2f}$'+'\n'+
+            rf'$B = {result.params["B"].value:0.2f}$'+'\n'+
+            rf'$C = {result.params["C"].value:0.2f}$'+'\n'+
+            rf'$\chi^2_\mathrm{{red.}} = {result.redchi:0.2f}$'+'\n\n')
     # set up figure with two axes
     config_plots()
     fig = plt.figure()
@@ -189,9 +189,12 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
     ax2 = fig.add_axes((0.1, 0.11, 0.8, 0.2))
     # plot data and fit
     # data
+    if ystd_sf == 1:
+        label_data = 'Data'
+    else:
+        label_data = r'Data (error $\times$'+f'{ystd_sf})'
     ax1.errorbar(df_2.index.values, df_2[ycol].values, yerr=ystd_sf*ystd,
-                 fmt='o', ls='none', ms=2, zorder=100,
-                 label=r'Data (error $\times$'+f'{ystd_sf})')
+                 fmt='o', ls='none', ms=2, zorder=100, label=label_data)
     # fit
     ax1.plot(df_2.index.values, result.best_fit, linewidth=2, color='red',
              zorder=99, label=label)
@@ -239,6 +242,7 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
     # rotate label for dates
     ax2.xaxis.set_tick_params(rotation=15)
     # save figure
+    fig.tight_layout()
     fig.savefig(plotfile+'.pdf')
     fig.savefig(plotfile+'.png')
     # remove first "time constant" of data
@@ -329,12 +333,20 @@ if __name__=='__main__':
     print('Running script: preprocess_data.py')
     time0 = datetime.now()
 
+    # load raw data
     df_raw = load_save_raw(rawfile, pklraw)
+    # load pickle
     #df_raw = pd.read_pickle(pklraw)
-    probes = get_probe_IDs(df_raw)
+
+    # build run information dataframe
+    ##probes = get_probe_IDs(df_raw)
     df_info = gen_save_info_df(df_raw, t0s, tfs, ramps, hysts, adcs, pklinfo)
+    # load pickle
     #df_info = pd.read_pickle(pklinfo)
+
+    # generate LaTeX table
     tex_info_str = timing_checks_latex(df_raw, df_info, writefile=tex_info)
+
     # run processing of raw data
     temp = process_raw(df_raw, df_info, pklproc, pklproc_ramp, pklproc_hyst,
                        pklfit_stable_temp)
@@ -348,27 +360,4 @@ if __name__=='__main__':
     '''
 
     timef = datetime.now()
-
-    '''
-    # Optional text output
-    print('\nOutput:')
-    print('Raw DataFrame:')
-    print(df_raw)
-    #print('\n')
-    print('Info DataFrame:')
-    print(df_info)
-    #print('\n')
-    #print(f'From configs.py: probe={probe}')
-    #print(f'Scraping from raw df: probes={probes}\n')
-    #print(f'LaTeX Run Info:')
-    #print(tex_info_str)
-    print('\nFit Report for Temperature Stability, Run Index 0')
-    print(results[0].fit_report())
-    print('Cleaned DataFrame:')
-    print(df)
-    print('\n')
-    '''
-
     print(f'Runtime: {timef-time0} [H:MM:SS])\n')
-
-    #plt.show()
