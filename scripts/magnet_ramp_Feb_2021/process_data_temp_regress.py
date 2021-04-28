@@ -5,6 +5,7 @@ import pickle as pkl
 from sys import stdout
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
+from matplotlib import dates as mdates
 from datetime import datetime
 from tqdm import tqdm
 from joblib import Parallel, delayed
@@ -81,7 +82,9 @@ def linear_temperature_regression(run_num, df, plotfile, xcol, ycol, ystd,
     ax1.errorbar(df_[xcol].values, df_[ycol].values, yerr=ystd_sf*ystd,
                  fmt='o', ls='none', ms=2, zorder=100, label=label_data)
     # scatter with color
-    sc = ax1.scatter(df_[xcol].values, df_[ycol].values, c=df_.index, s=1,
+    #sc = ax1.scatter(df_[xcol].values, df_[ycol].values, c=df_.index, s=1,
+    #                 zorder=101)
+    sc = ax1.scatter(df_[xcol].values, df_[ycol].values, c=df_.run_hours, s=1,
                      zorder=101)
     # fit
     ax1.plot(df_[xcol].values, result.best_fit, linewidth=2, color='red',
@@ -98,10 +101,23 @@ def linear_temperature_regression(run_num, df, plotfile, xcol, ycol, ystd,
     # residual
     ax2.errorbar(df_[xcol].values, res, yerr=ystd_sf*ystd, fmt='o', ls='none',
                  ms=2, zorder=99)
-    ax2.scatter(df_[xcol].values, res, c=df_.index, s=1, zorder=101)
+    #ax2.scatter(df_[xcol].values, res, c=df_.index, s=1, zorder=101)
+    ax2.scatter(df_[xcol].values, res, c=df_.run_hours, s=1, zorder=101)
     # colorbar for ax1
     cb = fig.colorbar(sc, cax=cb_ax)
-    cb.ax.set_yticklabels(df_.index.strftime('%m-%d %H:%M'))
+    cb.set_label('Time [Hours]')
+    ## WITH DATETIME
+    #cb.set_t
+    # print(f'vmin = {sc.colorbar.vmin}')
+    # print(f'vmax = {sc.colorbar.vmax}')
+    # # change colobar ticks labels and locators
+    # cb.set_ticks([sc.colorbar.vmin + t*(sc.colorbar.vmax-sc.colorbar.vmin)
+    #              for t in cb.ax.get_yticks()])
+    # cbtls = [mdates.datetime.datetime.fromtimestamp((sc.colorbar.vmin +
+    #          t*(sc.colorbar.vmax-sc.colorbar.vmin))*1e-9).strftime('%c')
+    #          for t in cb.ax.get_yticks()]
+    # cb.set_ticklabels(cbtls)
+    #cb.ax.set_yticklabels(df_.index.strftime('%m-%d %H:%M'))
     # formatting
     # kludge for NMR or Hall
     if ycol == 'NMR [T]':
@@ -139,7 +155,7 @@ def linear_temperature_regression(run_num, df, plotfile, xcol, ycol, ystd,
                     bottom=True)
     ax2.tick_params(which='both', direction='in', top=True, right=True)
     # save figure
-    fig.tight_layout()
+    #fig.tight_layout()
     fig.savefig(plotfile+'.pdf')
     fig.savefig(plotfile+'.png')
     return result, fig, ax1, ax2
@@ -240,7 +256,9 @@ def hall_regression_from_nmr(run_num, df, results_nmr, plotfile, xcol, ycol,
     ax1.errorbar(df_[xcol].values, df_[ycol].values, yerr=ystd_sf*ystd,
                  fmt='o', ls='none', ms=2, zorder=100, label=label_data)
     # scatter with color
-    sc = ax1.scatter(df_[xcol].values, df_[ycol].values, c=df_.index, s=1,
+    # sc = ax1.scatter(df_[xcol].values, df_[ycol].values, c=df_.index, s=1,
+    #                  zorder=101)
+    sc = ax1.scatter(df_[xcol].values, df_[ycol].values, c=df_.run_hours, s=1,
                      zorder=101)
     # fit
     ax1.plot(df_[xcol].values, result.best_fit, linewidth=2, color='red',
@@ -260,7 +278,8 @@ def hall_regression_from_nmr(run_num, df, results_nmr, plotfile, xcol, ycol,
     ax2.scatter(df_[xcol].values, res, c=df_.index, s=1, zorder=101)
     # colorbar for ax1
     cb = fig.colorbar(sc, cax=cb_ax)
-    cb.ax.set_yticklabels(df_.index.strftime('%m-%d %H:%M'))
+    cb.set_label('Time [Hours]')
+    #cb.ax.set_yticklabels(df_.index.strftime('%m-%d %H:%M'))
     # formatting
     ylabel1 = r'$|B|_\mathrm{Hall}$ [T]'
     title_prefix = 'Hall Probe'
@@ -293,28 +312,27 @@ def hall_regression_from_nmr(run_num, df, results_nmr, plotfile, xcol, ycol,
                     bottom=True)
     ax2.tick_params(which='both', direction='in', top=True, right=True)
     # save figure
-    fig.tight_layout()
+    #fig.tight_layout()
     fig.savefig(plotfile+'_with-NMR.pdf')
     fig.savefig(plotfile+'_with-NMR.png')
     return result, fig, ax1, ax2
 
 def run_hall_nmr_regression_single(run_num, probe, plotfile, df, df_info,
                                    results_nmr):
-    #
-    #pfile = plotdir+f'final_results/hall_temp_regress/hall_run-{run_num}_lin_temp_regress_fit'
-    # if NMR is in range, use new regression function (just add a constant to NMR fit)
+    # check if NMR is in range and regressed
     if df_info.iloc[run_num].NMR:
         temp = hall_regression_from_nmr(run_num, df, results_nmr, plotfile,
                                         xcol='Yoke (center magnet)',
                                         ycol=f'{probe}_Cal_Bmag',
                                         ystd=3e-5, ystd_sf=1)
-    # otherwise run the same regression as for NMR but force decreasing
+    # otherwise run the same regression as for NMR
     else:
         temp = linear_temperature_regression(run_num, df, plotfile,
                                              xcol='Yoke (center magnet)',
                                              ycol=f'{probe}_Cal_Bmag',
                                              ystd=3e-5, ystd_sf=1,
-                                             force_decreasing=True)
+                                             force_decreasing=False)
+                                             #force_decreasing=True)
     # split output
     result, fig, ax1, ax2 = temp
     return result, fig, ax1, ax2
@@ -362,9 +380,11 @@ if __name__=='__main__':
                                            pklfit_temp_hall)
     # load pickle
     #results_hall = pkl.load(open(pklfit_temp_hall, 'rb'))
+
     # regression with NMR when available
-    results_hall_nmr = run_hall_nmr_regression_all(probe, df, df_info,
-                                                   results_nmr, pklfit_temp_hall_nmr)
+    temp = run_hall_nmr_regression_all(probe, df, df_info, results_nmr,
+                                       pklfit_temp_hall_nmr)
+    results_hall_nmr = temp
     # load pickle
     #results_hall_nmr = pkl.load(open(pklfit_temp_hall_nmr, 'rb'))
 

@@ -10,7 +10,7 @@ from config import (
     plotdir,
     probe,
 )
-from factory_funcs import get_B_at_T0_func
+from factory_funcs import get_NMR_B_at_T0_func
 from plotting import config_plots
 config_plots()
 

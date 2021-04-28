@@ -242,7 +242,7 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
     # rotate label for dates
     ax2.xaxis.set_tick_params(rotation=15)
     # save figure
-    fig.tight_layout()
+    #fig.tight_layout()
     fig.savefig(plotfile+'.pdf')
     fig.savefig(plotfile+'.png')
     # remove first "time constant" of data
