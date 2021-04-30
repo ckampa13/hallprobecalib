@@ -1,6 +1,6 @@
 import numpy as np
 # local imports
-from model_funcs import mod_lin
+from model_funcs import mod_lin, mod_lin_alt
 
 def get_NMR_B_at_T0_func(results):
     # results can be a dictionary from either NMR or Hall

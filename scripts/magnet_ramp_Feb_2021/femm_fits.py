@@ -75,7 +75,7 @@ def simple_ratio_plot(hall, meas_hall, nmr, meas_nmr):
 
 def fit_B_vs_I_femm(ndeg, df_meas, df_full, name='NMR', method='POLYFIT',
                     I_min=-1000, fitcolor='red', datacolor='blue',
-                    fig=None, axs=None):
+                    fig=None, axs=None, plotfile=None):
     # copy dataframes and limit current
     df_ = df_meas.copy()
     df_ = df_.query(f'I >= {I_min}')
@@ -88,6 +88,10 @@ def fit_B_vs_I_femm(ndeg, df_meas, df_full, name='NMR', method='POLYFIT',
         std = 3e-5
     # inject noise in measurement data
     ystd = std * np.ones(len(df_))
+    # TESTING ONLY
+    #std = 0.
+    #ystd = None
+    ###
     noise = np.random.normal(loc=0, scale=std, size=len(df_))
     df_.loc[:, 'B'] = df_.loc[:, 'B'] + noise
 
@@ -113,6 +117,7 @@ def fit_B_vs_I_femm(ndeg, df_meas, df_full, name='NMR', method='POLYFIT',
         # other formatting
         fit_name = 'Polynomial Fit'
         ylab = 'Fit'
+        datalab = ylab
         # label for fit
         label = '\n'
         label += (rf'$\underline{{\mathrm{{Degree\ {ndeg}\ Polynomial}}}}$'+
@@ -138,6 +143,7 @@ def fit_B_vs_I_femm(ndeg, df_meas, df_full, name='NMR', method='POLYFIT',
         # other formatting
         fit_name = 'Quadratic Interpolation'
         ylab = 'Interpolation'
+        datalab = 'Interp.'
         # label for fit
         label = f'Quadratic Interpolation'
         # return "result"
@@ -157,6 +163,7 @@ def fit_B_vs_I_femm(ndeg, df_meas, df_full, name='NMR', method='POLYFIT',
         # other formatting
         fit_name = 'Cubic Interpolation'
         ylab = 'Interpolation'
+        datalab = 'Interp.'
         # label for fit
         label = f'Cubic Interpolation'
         # return "result"
@@ -178,9 +185,11 @@ def fit_B_vs_I_femm(ndeg, df_meas, df_full, name='NMR', method='POLYFIT',
     #ax2 = fig.add_axes((0.1, 0.08, 0.7, 0.2))
     # plot data and fit
     # data
-    label_data = f'Data ({ylab})'
+    label_data = f'Finite Element \n+ Noise ({datalab})'
+    #label_data = f'Data ({datalab})'
     ax1.errorbar(df_.I.values, df_.B.values, yerr=ystd, c=datacolor,
-                 fmt='o', ls='none', ms=4, zorder=100, label=label_data)
+                 fmt='o', ls='none', ms=4, zorder=100, capsize=2,
+                 label=label_data)
     # fit
     ax1.plot(df.I.values, B_full, linewidth=1, color=fitcolor,
              zorder=99, label=label)
@@ -197,9 +206,10 @@ def fit_B_vs_I_femm(ndeg, df_meas, df_full, name='NMR', method='POLYFIT',
     ax2.plot(df.I.values, res_full, linewidth=1, color=fitcolor,
              zorder=99)
     ax2.errorbar(df_.I.values, res, yerr=ystd, fmt='o', ls='none', ms=4,
-                 c=datacolor, zorder=100)
+                 c=datacolor, capsize=2, zorder=100)
     # formatting
-    # set ylimit ax2
+    # set ylimits
+    #ax1.set_ylim([-0.25, 1.5])
     ax2.set_ylim([-yl, yl])
     # remove ticklabels for ax1 xaxis
     ax1.set_xticklabels([])
@@ -213,7 +223,7 @@ def fit_B_vs_I_femm(ndeg, df_meas, df_full, name='NMR', method='POLYFIT',
     ax1.set_xlim([tmin, tmax])
     ax2.set_xlim([tmin, tmax])
     # turn on legend
-    ax1.legend().set_zorder(101)
+    ax1.legend(fontsize=13).set_zorder(101)
     # add title
     fig.suptitle(f'FEMM B vs. I Modeling: {fit_name} for {name} Probe')
     # minor ticks
@@ -226,6 +236,10 @@ def fit_B_vs_I_femm(ndeg, df_meas, df_full, name='NMR', method='POLYFIT',
                     bottom=True)
     ax2.tick_params(which='both', direction='in', top=True, right=True)
     ax2.ticklabel_format(axis='y', style='sci', scilimits=(0,0))
+    # save file
+    if not plotfile is None:
+        fig.savefig(plotfile+'.pdf')
+        fig.savefig(plotfile+'.png')
 
     return result, fig, ax1, ax2
 
@@ -233,6 +247,8 @@ def fit_B_vs_I_femm(ndeg, df_meas, df_full, name='NMR', method='POLYFIT',
 if __name__=='__main__':
     print('Running script: femm_fits.py')
     time0 = datetime.now()
+    # more specific plot directory
+    pdir = plotdir+'final_results/femm/'
     # not implemented
     # load_data(femmfile_75_estimate)
     df_hall, df_hall_meas = load_data(femmfile_75_Hall, Hall_currents)
@@ -244,12 +260,16 @@ if __name__=='__main__':
     fig, ax = simple_plot(df_hall, df_hall_meas, df_nmr, df_nmr_meas)
     fig, ax = simple_ratio_plot(df_hall, df_hall_meas, df_nmr, df_nmr_meas)
     # fitting
-    I_min_Hall = -1000
+    #I_min_Hall = -1000
+    I_min_Hall = df_hall_meas.query('I>120').I.min()
     I_min_NMR = df_nmr_meas.query('I>120').I.min()
     #I_min = 125
     #I_min = df_nmr_meas.query('I>120').I.min()
     #print(I_min)
     ndeg = 7#6#8#6#10
+    # savefile
+    pfile = pdir+'{0}_75mm_{1}'
+    # COMPARISON PLOTS
     # nmr
     interp_nmr, fig, ax1, ax2 = fit_B_vs_I_femm(ndeg, df_nmr_meas, df_nmr,
                                                 name='NMR',
@@ -258,14 +278,11 @@ if __name__=='__main__':
                                                 datacolor='black',
                                                 method='INTERP_CUBIC')
 
-    result_nmr, fig, ax1, ax2 = fit_B_vs_I_femm(ndeg, df_nmr_meas, df_nmr,
-                                                name='NMR',
-                                                I_min=I_min_NMR,
-                                                fitcolor='red',
-                                                datacolor='blue',
-                                                fig = fig,
-                                                axs = [ax1,ax2],
-                                                method='POLYFIT')
+    temp = fit_B_vs_I_femm(ndeg, df_nmr_meas, df_nmr, name='NMR',
+                           I_min=I_min_NMR,fitcolor='red', datacolor='blue',
+                           fig = fig, axs = [ax1,ax2], method='POLYFIT',
+                           plotfile=pfile.format('NMR', 'poly_vs_interp'))
+    result_nmr, fig, ax1, ax2 = temp
 
     # hall probe
     interp_hall, fig, ax1, ax2 = fit_B_vs_I_femm(ndeg, df_hall_meas, df_hall,
@@ -275,30 +292,26 @@ if __name__=='__main__':
                                                  datacolor='black',
                                                  method='INTERP_CUBIC')
 
-    result_hall, fig, ax1, ax2 = fit_B_vs_I_femm(ndeg, df_hall_meas, df_hall,
-                                                 name='Hall',
-                                                 I_min=I_min_Hall,
-                                                 fitcolor='red',
-                                                 datacolor='blue',
-                                                 fig = fig,
-                                                 axs = [ax1,ax2],
-                                                 method='POLYFIT')
-    # # hall probe
-    # result_hall, fig, ax1, ax2 = fit_B_vs_I_femm(ndeg, df_hall_meas, df_hall,
-    #                                              name='Hall',
-    #                                              I_min=I_min_Hall,
-    #                                              #method='POLYFIT')
-    #                                              #method='INTERP_QUAD')
-    #                                              method='INTERP_CUBIC')
+    temp = fit_B_vs_I_femm(ndeg, df_hall_meas, df_hall, name='Hall',
+                           I_min=I_min_Hall, fitcolor='red', datacolor='blue',
+                           fig = fig, axs = [ax1,ax2], method='POLYFIT',
+                           plotfile=pfile.format('Hall', 'poly_vs_interp'))
+    result_hall, fig, ax1, ax2 = temp
 
-    # test output
-    # print('Hall Dataframes')
-    # print(df_hall)
-    # print(df_hall_meas)
-    # print('NMR Dataframes')
-    # print(df_nmr)
-    # print(df_nmr_meas)
+    # INTERP ONLY PLOTS
+    # nmr
+    temp = fit_B_vs_I_femm(ndeg, df_nmr_meas, df_nmr, name='NMR',
+                           I_min=I_min_NMR, fitcolor='green',
+                           datacolor='black', method='INTERP_CUBIC',
+                           plotfile=pfile.format('NMR', 'interp_cubic'))
+    result_nmr, fig, ax1, ax2 = temp
+    # hall probe
+    temp = fit_B_vs_I_femm(ndeg, df_hall_meas, df_hall, name='Hall',
+                           I_min=I_min_Hall ,fitcolor='green',
+                           datacolor='black', method='INTERP_CUBIC',
+                           plotfile=pfile.format('Hall', 'interp_cubic'))
+    result_nmr, fig, ax1, ax2 = temp
 
     timef = datetime.now()
     print(f'Runtime: {timef-time0} [H:MM:SS])\n')
-    plt.show()
+    #plt.show()

@@ -11,7 +11,7 @@ python check_dirs.py
 #python femm_gmw_compare.py
 
 # FEMM fit vs. interpolation
-python femm_fits.py
+#python femm_fits.py
 
 # preprocess data
 #python preprocess_data.py
@@ -20,7 +20,7 @@ python femm_fits.py
 #python process_data_temp_regress.py
 
 # B vs. I with temperature regressed data
-# python B_vs_I_no_temp.py
+python B_vs_I_no_temp.py
 
 # copy results to Dropbox folder with write-up
 #cp -r /home/ckampa/data/hallprobecalib_extras/plots/magnet_ramp/2021-02-24 /home/ckampa/Dropbox/research/deliverables/mu2e_analysis_notes/hall_probes/magnet_ramp_2021-02-24/figures/
