@@ -21,16 +21,19 @@ def load_data(femmfile, GMW_currents, GMW_Bs):
     df_.eval('I = I * 2', inplace=True)
     return df_GMW, df, df_
 
-def comparison_plot(df_GMW, df_FEMM, df_FEMM_part, savename=plotdir+'final_results/femm_gmw_comparison_ratio'):
+def comparison_plot(df_GMW, df_FEMM, df_FEMM_part, savename):
     # set up figure with two axes
     fig = plt.figure()
     ax1 = fig.add_axes((0.1, 0.3, 0.8, 0.6))
     ax2 = fig.add_axes((0.1, 0.1, 0.8, 0.2))
     # plot full FEMM calculation as line and GMW data as points
-    ax1.plot(df_FEMM.I, df_FEMM.B, linewidth=2, color='red', label='FEMM Calculation', zorder=99)   
-    ax1.plot(df_GMW.I, df_GMW.B, f'.', markersize=10, color='blue', label='GMW Calibration Curve', zorder=100)
+    ax1.plot(df_FEMM.I, df_FEMM.B, linewidth=2, color='red',
+             label='FEMM Calculation', zorder=99)
+    ax1.plot(df_GMW.I, df_GMW.B, f'.', markersize=10, color='blue',
+             label='GMW Calibration Curve', zorder=100)
     # add vertical line in both axes for physical limit of magnet
-    ax1.plot([280, 280], [-0.5, 1.8], color='black', linestyle='-.', label='Physical Limit of Magnet', zorder=98)
+    ax1.plot([280, 280], [-0.5, 1.8], color='black', linestyle='-.',
+             label='Physical Limit of Magnet', zorder=98)
     ax2.plot([280, 280], [0, 3], color='black', linestyle='-.', zorder=98)
     # calculate ratio, handling divide by 0 error
     a = df_FEMM_part.B
@@ -73,7 +76,9 @@ if __name__=='__main__':
     print('Running script: femm_gmw_compare.py')
     time0 = datetime.now()
     df_GMW, df, df_ = load_data(femmfile_70, GMW_currents, GMW_Bs)
-    fig, ax1, ax2 = comparison_plot(df_GMW, df, df_, plotdir+'final_results/femm_gmw_comparison_ratio')
+    fig, ax1, ax2 = comparison_plot(df_GMW, df, df_,
+                                    plotdir+'final_results/femm/'+
+                                    'femm_gmw_comparison_ratio')
     timef = datetime.now()
     #plt.show()
     print(f'Runtime: {timef-time0} [H:MM:SS])\n')

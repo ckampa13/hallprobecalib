@@ -32,6 +32,10 @@ femmfile_75_estimate = pkldir+'ramp_2021-02-24_guess_gap75_B_vs_I_results.txt'
 GMW_currents = np.array([0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200])
 GMW_Bs = np.array([0.00000,0.25612,0.50921,0.76165,0.99680,1.14767,1.25025,
                   1.35284,1.42225,1.47993,1.51854])
+# current set points (approx.) -- use for FEMM test fits
+Hall_currents = np.array([0., 32., 64., 96., 128., 144., 160., 176., 192.,
+                          208., 224., 240., 256., 272., 281.])
+NMR_currents = np.concatenate([[0.], Hall_currents[4:]])
 
 # Other params
 probe = '6A0000000D61333A' # on SmarAct, in magnet

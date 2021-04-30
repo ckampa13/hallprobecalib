@@ -8,13 +8,16 @@ conda activate mu2e
 python check_dirs.py
 
 # FEMM / GMW comparison plot
-python femm_gmw_compare.py
+#python femm_gmw_compare.py
+
+# FEMM fit vs. interpolation
+python femm_fits.py
 
 # preprocess data
-python preprocess_data.py
+#python preprocess_data.py
 
 # process data (temperature regression)
-python process_data_temp_regress.py
+#python process_data_temp_regress.py
 
 # B vs. I with temperature regressed data
 # python B_vs_I_no_temp.py
