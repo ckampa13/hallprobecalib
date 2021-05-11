@@ -129,6 +129,26 @@ def fit_B_vs_I_femm(ndeg, df_meas, df_full, name='NMR', method='POLYFIT',
         label += (''.join(label_coeffs)+'\n'+
               rf'$\chi^2_\mathrm{{red.}} = {result.redchi:0.2f}$'+'\n')
 
+    elif method == 'INTERP_LIN':
+        print(f"Running INTERP_LIN for {name}")
+        # set up interpolation
+        interp_func = interp1d(df_.I.values, df_.B.values, kind='linear',
+                               fill_value='extrapolate')
+        # calculate B for meas and full dfs
+        B_full = interp_func(df.I.values)
+        B_meas = interp_func(df_.I.values)
+        # residuals
+        res = df_.B.values - B_meas
+        res_full = df.B.values - B_full
+        # other formatting
+        fit_name = 'Linear Interpolation'
+        ylab = 'Interpolation'
+        datalab = 'Interp.'
+        # label for fit
+        label = f'Linear Interpolation'
+        # return "result"
+        result = interp_func
+
     elif method == 'INTERP_QUAD':
         print(f"Running INTERP_QUAD for {name}")
         # set up interpolation
@@ -299,18 +319,20 @@ if __name__=='__main__':
     result_hall, fig, ax1, ax2 = temp
 
     # INTERP ONLY PLOTS
-    # nmr
-    temp = fit_B_vs_I_femm(ndeg, df_nmr_meas, df_nmr, name='NMR',
-                           I_min=I_min_NMR, fitcolor='green',
-                           datacolor='black', method='INTERP_CUBIC',
-                           plotfile=pfile.format('NMR', 'interp_cubic'))
-    result_nmr, fig, ax1, ax2 = temp
-    # hall probe
-    temp = fit_B_vs_I_femm(ndeg, df_hall_meas, df_hall, name='Hall',
-                           I_min=I_min_Hall ,fitcolor='green',
-                           datacolor='black', method='INTERP_CUBIC',
-                           plotfile=pfile.format('Hall', 'interp_cubic'))
-    result_nmr, fig, ax1, ax2 = temp
+    for I in ['LIN', 'QUAD', 'CUBIC']:
+        i = I.lower()
+        # nmr
+        temp = fit_B_vs_I_femm(ndeg, df_nmr_meas, df_nmr, name='NMR',
+                               I_min=I_min_NMR, fitcolor='green',
+                               datacolor='black', method=f'INTERP_{I}',
+                               plotfile=pfile.format('NMR', f'interp_{i}'))
+        result_nmr, fig, ax1, ax2 = temp
+        # hall probe
+        temp = fit_B_vs_I_femm(ndeg, df_hall_meas, df_hall, name='Hall',
+                               I_min=I_min_Hall ,fitcolor='green',
+                               datacolor='black', method=f'INTERP_{I}',
+                               plotfile=pfile.format('Hall', f'interp_{i}'))
+        result_nmr, fig, ax1, ax2 = temp
 
     timef = datetime.now()
     print(f'Runtime: {timef-time0} [H:MM:SS])\n')

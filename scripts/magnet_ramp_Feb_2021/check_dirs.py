@@ -12,10 +12,11 @@ p_1_1 = plotdir+'final_results/nmr_temp_regress/'
 p_1_2 = plotdir+'final_results/hall_temp_regress/'
 p_1_3 = plotdir+'final_results/hall_from_nmr_temp_regress/'
 p_1_4 = plotdir+'final_results/femm/'
+p_1_5 = plotdir+'final_results/B_vs_I/'
 p_2 = plotdir+'analysis_guides/'
 
 dirs = [pkldir, plotdir,
-        p_0, p_0_0, p_1, p_1_0, p_1_1, p_1_2, p_1_3, p_1_4,
+        p_0, p_0_0, p_1, p_1_0, p_1_1, p_1_2, p_1_3, p_1_4, p_1_5,
         p_2,
        ]
 

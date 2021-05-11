@@ -1,3 +1,4 @@
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter, HourLocator
 from datetime import datetime
@@ -33,3 +34,14 @@ def datetime_plt(ax, x_dt, y, s=5, label=None, nmaj=8):
 def ticks_in(ax):
     ax.tick_params(which='both', direction='in')
     return ax
+
+# label for histogram
+def get_label(data, bins):
+    over = (data > np.max(bins)).sum()
+    under = (data < np.min(bins)).sum()
+    data_ = data[(data <= np.max(bins)) & (data >= np.min(bins))]
+    mean = f'{np.mean(data_):.3E}'
+    std = f'{np.std(data_, ddof=1):.3E}'
+    label = f'mean: {mean:>15}\nstddev: {std:>15}\nIntegral: {len(data):>17}\n'\
+    +f'Underflow: {under:>16}\nOverflow: {over:>16}'
+    return label
