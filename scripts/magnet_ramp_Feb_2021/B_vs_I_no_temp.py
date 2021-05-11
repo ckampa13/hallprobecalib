@@ -12,6 +12,8 @@ from configs import (
     femmfile_75_NMR,
     Hall_currents,
     NMR_currents,
+    pkl_interp_fcn_Hall,
+    pkl_interp_fcn_NMR,
     pklfit_temp_hall,
     pklfit_temp_hall_nmr,
     pklfit_temp_nmr,
@@ -241,10 +243,7 @@ def plot_data_vs_FEMM(df_NMR_, df_Hall_, femm_nmr_meas, femm_hall_meas,
 
 def fit_B_vs_I(ndeg, df_meas, name='NMR', ycol='B_reg', yerr='sigma_B_reg',
                method='POLYFIT', I_min=-1000, fitcolor='red', datacolor='blue',
-               fig=None, axs=None, plotfile=None):
-#def fit_B_vs_I_femm(ndeg, df_meas, df_full, name='NMR', method='POLYFIT',
-#                    I_min=-1000, fitcolor='red', datacolor='blue',
-#                    fig=None, axs=None, plotfile=None):
+               fig=None, axs=None, plotfile=None, pklfile=None):
     # copy dataframes and limit current
     df_ = df_meas.copy()
     df_ = df_.query(f'I >= {I_min}')
@@ -252,22 +251,10 @@ def fit_B_vs_I(ndeg, df_meas, name='NMR', ycol='B_reg', yerr='sigma_B_reg',
     m = df_.index == 11
     df_ = df_[~m].copy()
     Is_fine = np.linspace(df_.I.min(), df_.I.max(), 200)
-    # df = df_full.copy()
-    # df = df.query(f'I >= {I_min}')
-    # get correct noise level
-    # if name=='NMR':
-    #     std = 5e-6
-    # else:
-    #     std = 3e-5
     # set up noise for least-squares fit
-    # ystd = std * np.ones(len(df_))
     ystd = df_[yerr].values
     # TESTING ONLY
     #ystd = None
-    ###
-    # noise = np.random.normal(loc=0, scale=std, size=len(df_))
-    # df_.loc[:, 'B'] = df_.loc[:, 'B'] + noise
-
     # run modeling (polyfit or interpolation)
     # check method
     if method == 'POLYFIT':
@@ -282,11 +269,8 @@ def fit_B_vs_I(ndeg, df_meas, name='NMR', ycol='B_reg', yerr='sigma_B_reg',
                            params=params, weights=1/ystd, scale_covar=False)
         # calculate B for full dataset
         B_full = ndeg_poly1d(Is_fine, **result.params)
-        # residuals
         # calculate residual (data - fit)
         res = df_[ycol].values - result.best_fit
-        # full calculation
-        # res_full = df.B.values - B_full
         # other formatting
         fit_name = 'Polynomial Fit'
         ylab = 'Fit'
@@ -312,7 +296,6 @@ def fit_B_vs_I(ndeg, df_meas, name='NMR', ycol='B_reg', yerr='sigma_B_reg',
         B_meas = interp_func(df_.I.values)
         # residuals
         res = df_[ycol].values - B_meas
-        # res_full = df.B.values - B_full
         # other formatting
         fit_name = 'Linear Interpolation'
         ylab = 'Interpolation'
@@ -332,7 +315,6 @@ def fit_B_vs_I(ndeg, df_meas, name='NMR', ycol='B_reg', yerr='sigma_B_reg',
         B_meas = interp_func(df_.I.values)
         # residuals
         res = df_[ycol].values - B_meas
-        # res_full = df.B.values - B_full
         # other formatting
         fit_name = 'Quadratic Interpolation'
         ylab = 'Interpolation'
@@ -352,7 +334,6 @@ def fit_B_vs_I(ndeg, df_meas, name='NMR', ycol='B_reg', yerr='sigma_B_reg',
         B_meas = interp_func(df_.I.values)
         # residuals
         res = df_[ycol].values - B_meas
-        # res_full = df.B.values - B_full
         # other formatting
         fit_name = 'Cubic Interpolation'
         ylab = 'Interpolation'
@@ -364,32 +345,27 @@ def fit_B_vs_I(ndeg, df_meas, name='NMR', ycol='B_reg', yerr='sigma_B_reg',
 
     else:
         raise NotImplementedError
-
+    # saving fit result function
+    if not pklfile is None:
+        pkl.dump(result, open(pklfile, 'wb'))
     # plot
     # set up figure with two axes
-    # config_plots()
     if fig is None:
         fig = plt.figure()
         ax1 = fig.add_axes((0.1, 0.31, 0.8, 0.6))
         ax2 = fig.add_axes((0.1, 0.08, 0.8, 0.2))#, sharex=ax1)
     else:
         ax1, ax2 = axs
-    #ax1 = fig.add_axes((0.1, 0.31, 0.7, 0.6))
-    #ax2 = fig.add_axes((0.1, 0.08, 0.7, 0.2))
     # plot data and fit
     # data
-    # label_data = f'Finite Element \n+ Noise ({datalab})'
     label_data = f'Regressed\nData ({datalab})'
-    #label_data = f'Data ({datalab})'
     ax1.errorbar(df_.I.values, df_[ycol].values, yerr=ystd, c=datacolor,
                  fmt='x', ls='none', ms=6, zorder=100, capsize=3,
                  label=label_data)
     # fit
     ax1.plot(Is_fine, B_full, linewidth=1, color=fitcolor,
              zorder=99, label=label)
-
     # calculate ylimit for ax2
-    # yl = 1.2*(np.max(np.abs(res)) + ystd[0])
     yl = 1.2*(np.max(np.abs(res)) + np.max(ystd))
     # plot residual
     # zero-line
@@ -398,13 +374,10 @@ def fit_B_vs_I(ndeg, df_meas, name='NMR', ycol='B_reg', yerr='sigma_B_reg',
     ax2.plot([xmin, xmax], [0, 0], '--', color='black', linewidth=1,
              zorder=98)
     # residual
-    # ax2.plot(df.I.values, res_full, linewidth=1, color=fitcolor,
-    #          zorder=99)
     ax2.errorbar(df_.I.values, res, yerr=ystd, fmt='x', ls='none', ms=6,
                  c=datacolor, capsize=3, zorder=100)
     # formatting
     # set ylimits
-    #ax1.set_ylim([-0.25, 1.5])
     ax2.set_ylim([-yl, yl])
     # remove ticklabels for ax1 xaxis
     ax1.set_xticklabels([])
@@ -439,10 +412,9 @@ def fit_B_vs_I(ndeg, df_meas, name='NMR', ycol='B_reg', yerr='sigma_B_reg',
 
     return result, fig, ax1, ax2
 
-def plot_proc_plus_interp(proc_ramp, result_B_vs_I, ycol='NMR [T]', name='NMR',
-                          ylab='Interpolation', fitname='Cubic Interpolation',
-                          pfile_scat=None, pfile_hist=None, tempcorrect=True):
-                          #fig=None, axs=None):
+def plot_proc_and_fit(proc_ramp, result_B_vs_I, ycol='NMR [T]', name='NMR',
+                      ylab='Interpolation', fitname='Cubic Interpolation',
+                      pfile_scat=None, pfile_hist=None, tempcorrect=True):
     # calculate interpolated data
     df_ = proc_ramp.sort_values(by=['Magnet Current [A]']).copy()
     Is = df_['Magnet Current [A]'].values
@@ -453,8 +425,6 @@ def plot_proc_plus_interp(proc_ramp, result_B_vs_I, ycol='NMR [T]', name='NMR',
     # check if regress or interp
     if type(result_B_vs_I) == lm.model.ModelResult:
         # regressed
-        # Bs_fit = result_B_vs_I.eval(x=Is)
-        # Bs_fit_fine = result_B_vs_I.eval(xs=Is_fine)
         # TESTING TEMP ADDITIONS
         if tempcorrect:
             a = -1.5e-4#-1e-4
@@ -462,13 +432,14 @@ def plot_proc_plus_interp(proc_ramp, result_B_vs_I, ycol='NMR [T]', name='NMR',
                       (a * (Is-120)/(280-120)) * (Ts-T0))
             Is_fine = Is
             Bs_fit_fine = Bs_fit
+            titlesuff = ' (with Temperature Corrections)'
+        # standard check -- no corrections
         else:
             Bs_fit = result_B_vs_I.eval(x=Is)
             Bs_fit_fine = result_B_vs_I.eval(xs=Is_fine)
+            titlesuff = ''
     else:
         # interpolated
-        # Bs_fit = result_B_vs_I(Is)
-        # Bs_fit_fine = result_B_vs_I(Is_fine)
         # TESTING TEMP ADDITIONS
         if tempcorrect:
             a = -1.5e-4#-1e-4
@@ -490,9 +461,12 @@ def plot_proc_plus_interp(proc_ramp, result_B_vs_I, ycol='NMR [T]', name='NMR',
             # TEST
             Is_fine = Is
             Bs_fit_fine = Bs_fit
+            titlesuff = ' (with Temperature Corrections)'
+        # standard check - no corrections
         else:
             Bs_fit = result_B_vs_I(Is)
             Bs_fit_fine = result_B_vs_I(Is_fine)
+            titlesuff = ''
 
     # residuals
     Bs_res = Bs - Bs_fit
@@ -533,8 +507,6 @@ def plot_proc_plus_interp(proc_ramp, result_B_vs_I, ycol='NMR [T]', name='NMR',
     ax2.plot([xmin, xmax], [0, 0], '--', color='black', linewidth=1,
              zorder=98)
     # residual
-    # ax2.plot(df.I.values, res_full, linewidth=1, color=fitcolor,
-    #          zorder=99)
     # errorbar
     # ax2.errorbar(Is, Bs_res, yerr=ystd, fmt='x', ls='none', ms=6,
     #              c=datacolor, capsize=3, zorder=100)
@@ -559,7 +531,7 @@ def plot_proc_plus_interp(proc_ramp, result_B_vs_I, ycol='NMR [T]', name='NMR',
     ax1.legend(fontsize=13).set_zorder(101)
     # add title
     fig.suptitle(r'$B$ vs. $I$ on Pre-processed Data:'+
-                 f'\n{fitname} for {name} Probe')
+                 f'\n{fitname} for {name} Probe{titlesuff}')
     # minor ticks
     ax1.xaxis.set_minor_locator(AutoMinorLocator())
     ax2.xaxis.set_minor_locator(AutoMinorLocator())
@@ -570,19 +542,17 @@ def plot_proc_plus_interp(proc_ramp, result_B_vs_I, ycol='NMR [T]', name='NMR',
                     bottom=True)
     ax2.tick_params(which='both', direction='in', top=True, right=True)
     ax2.ticklabel_format(axis='y', style='sci', scilimits=(0,0))
-    # save file
+    # save scatter plot to file
     if not pfile_scat is None:
         fig.savefig(pfile_scat+'.pdf')
         fig.savefig(pfile_scat+'.png')
-
-    # histogram
+    # HISTOGRAM
     rmax = 1.2 * np.max(np.abs(Bs_res))
     nbins=200#100
     bins = np.linspace(-rmax, rmax, nbins)
     ax_2.hist(Bs_res, bins=bins, histtype='step', linewidth=2,
               label=get_label(Bs_res, bins))
     # formatting
-    #
     # minor ticks
     ax_2.xaxis.set_minor_locator(AutoMinorLocator())
     ax_2.yaxis.set_minor_locator(AutoMinorLocator())
@@ -592,7 +562,8 @@ def plot_proc_plus_interp(proc_ramp, result_B_vs_I, ycol='NMR [T]', name='NMR',
     # ax_2.set_xlabel(f'(Data ({ycol}) - {ylab}) [T]')
     ax_2.set_xlabel(f'(Data - {ylab}) [T]')
     ax_2.set_ylabel('Count')
-    fig_2.suptitle(f'Fit Residuals on Pre-processed Data: {name} Probe')
+    fig_2.suptitle(f'Fit Residuals on Pre-processed Data:'+
+                   f' {name} Probe{titlesuff}')
     ax_2.legend()
     if not pfile_hist is None:
         fig_2.savefig(pfile_hist+'.pdf')
@@ -661,17 +632,25 @@ if __name__=='__main__':
     # TESTING
     for I in ['CUBIC']:
         i = I.lower()
+        if I == 'CUBIC':
+            pNMR = pkl_interp_fcn_NMR
+            pHall = pkl_interp_fcn_Hall
+        else:
+            pNMR = None
+            pHall = None
         # nmr
         temp = fit_B_vs_I(ndeg, df_NMR, name='NMR', ycol='B_reg',
                           yerr='sigma_B_reg', I_min=I_min_NMR, fitcolor='green',
                           datacolor='black', method=f'INTERP_{I}',
-                          plotfile=pfile.format('NMR', f'interp_{i}'))
+                          plotfile=pfile.format('NMR', f'interp_{i}'),
+                          pklfile=pNMR)
         result_nmr_interp, fig, ax1, ax2 = temp
         # hall probe
         temp = fit_B_vs_I(ndeg, df_Hall, name='Hall', ycol='B_reg',
                           yerr='sigma_B_reg', I_min=I_min_Hall , fitcolor='green',
                           datacolor='black', method=f'INTERP_{I}',
-                          plotfile=pfile.format('Hall', f'interp_{i}'))
+                          plotfile=pfile.format('Hall', f'interp_{i}'),
+                          pklfile=pHall)
         result_hall_interp, fig, ax1, ax2 = temp
     # REGRESSION ONLY PLOTS
     '''
@@ -702,55 +681,47 @@ if __name__=='__main__':
     proc_ramp_hall = proc_ramp[halls]
     # NMR, cubic interp
     # no temp
-    temp = plot_proc_plus_interp(proc_ramp_nmr, result_nmr_interp,
-                                 ycol='NMR [T]', name='NMR',
-                                 ylab='Interpolation',
-                                 fitname='Cubic Interpolation',
-                                 pfile_scat=pfile2.format('NMR', 'B_vs_I',
-                                                          'interp_cubic'),
-                                 pfile_hist=pfile2.format('NMR', 'Hist',
-                                                          'interp_cubic'),
-                                 tempcorrect=False)
-    Is, Bs, Bs_fit, Bs_res, fig, ax1, ax2, fig_2, ax_2 = temp
+    _ = plot_proc_and_fit(proc_ramp_nmr, result_nmr_interp, ycol='NMR [T]',
+                          name='NMR', ylab='Interpolation',
+                          fitname='Cubic Interpolation',
+                          pfile_scat=pfile2.format('NMR', 'B_vs_I',
+                                                   'interp_cubic'),
+                          pfile_hist=pfile2.format('NMR', 'Hist',
+                                                   'interp_cubic'),
+                          tempcorrect=False)
+    Is, Bs, Bs_fit, Bs_res, fig, ax1, ax2, fig_2, ax_2 = _
     # with temp
-    temp = plot_proc_plus_interp(proc_ramp_nmr, result_nmr_interp,
-                                 ycol='NMR [T]', name='NMR',
-                                 ylab='Interpolation',
-                                 fitname='Cubic Interpolation',
-                                 pfile_scat=pfile2.format('NMR_tempcorr',
-                                                          'B_vs_I',
-                                                          'interp_cubic'),
-                                 pfile_hist=pfile2.format('NMR_tempcorr',
-                                                          'Hist',
-                                                          'interp_cubic'),
-                                 tempcorrect=True)
-    Is, Bs, Bs_fit, Bs_res, fig, ax1, ax2, fig_2, ax_2 = temp
+    _ = plot_proc_and_fit(proc_ramp_nmr, result_nmr_interp, ycol='NMR [T]',
+                          name='NMR', ylab='Interpolation',
+                          fitname='Cubic Interpolation',
+                          pfile_scat=pfile2.format('NMR_tempcorr', 'B_vs_I',
+                                                   'interp_cubic'),
+                          pfile_hist=pfile2.format('NMR_tempcorr', 'Hist',
+                                                   'interp_cubic'),
+                          tempcorrect=True)
+    Is, Bs, Bs_fit, Bs_res, fig, ax1, ax2, fig_2, ax_2 = _
     # Hall, cubic interp
     # no temp
-    temp = plot_proc_plus_interp(proc_ramp_hall, result_hall_interp,
-                                 ycol=f'{probe}_Cal_Bmag', name='Hall',
-                                 ylab='Interpolation',
-                                 fitname='Cubic Interpolation',
-                                 pfile_scat=pfile2.format('Hall', 'B_vs_I',
-                                                          'interp_cubic'),
-                                 pfile_hist=pfile2.format('Hall', 'Hist',
-                                                          'interp_cubic'),
-                                 tempcorrect=False)
-    Is, Bs, Bs_fit, Bs_res, fig, ax1, ax2, fig_2, ax_2 = temp
+    _ = plot_proc_and_fit(proc_ramp_hall, result_hall_interp,
+                          ycol=f'{probe}_Cal_Bmag', name='Hall',
+                          ylab='Interpolation', fitname='Cubic Interpolation',
+                          pfile_scat=pfile2.format('Hall', 'B_vs_I',
+                                                   'interp_cubic'),
+                          pfile_hist=pfile2.format('Hall', 'Hist',
+                                                   'interp_cubic'),
+                          tempcorrect=False)
+    Is, Bs, Bs_fit, Bs_res, fig, ax1, ax2, fig_2, ax_2 = _
     # with temp
-    temp = plot_proc_plus_interp(proc_ramp_hall, result_hall_interp,
-                                 ycol=f'{probe}_Cal_Bmag', name='Hall',
-                                 ylab='Interpolation',
-                                 fitname='Cubic Interpolation',
-                                 pfile_scat=pfile2.format('Hall_tempcorr',
-                                                          'B_vs_I',
-                                                          'interp_cubic'),
-                                 pfile_hist=pfile2.format('Hall_tempcorr',
-                                                          'Hist',
-                                                          'interp_cubic'),
-                                 tempcorrect=True)
-    Is, Bs, Bs_fit, Bs_res, fig, ax1, ax2, fig_2, ax_2 = temp
-    # with temp
+    _ = plot_proc_and_fit(proc_ramp_hall, result_hall_interp,
+                          ycol=f'{probe}_Cal_Bmag', name='Hall',
+                          ylab='Interpolation', fitname='Cubic Interpolation',
+                          pfile_scat=pfile2.format('Hall_tempcorr', 'B_vs_I',
+                                                   'interp_cubic'),
+                          pfile_hist=pfile2.format('Hall_tempcorr', 'Hist',
+                                                   'interp_cubic'),
+                          tempcorrect=True)
+    Is, Bs, Bs_fit, Bs_res, fig, ax1, ax2, fig_2, ax_2 = _
+
     # test output
     # print('NMR df:')
     # print(df_NMR)

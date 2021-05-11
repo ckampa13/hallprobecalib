@@ -18,11 +18,15 @@ pklproc = pkldir+'ramp_2021-02-24.processed-all.pkl'
 pklproc_ramp = pkldir+'ramp_2021-02-24.processed-ramp.pkl'
 pklproc_hyst = pkldir+'ramp_2021-02-24.processed-hyst.pkl'
 # fit pickles
+# processing
 pklfit_stable_temp = pkldir+'ramp_2021-02-24.stable-temp-fits.pkl'
 pklfit_temp_nmr = pkldir+'ramp_2021-02-24.nmr-lin-temp-regress-fits.pkl'
 pklfit_temp_hall = pkldir+'ramp_2021-02-24.hall-lin-temp-regress-fits.pkl'
 pklfit_temp_hall_nmr = (pkldir+'ramp_2021-02-24.'+
                         'hall-from-nmr-lin-temp-regress-fits.pkl')
+# fit results
+pkl_interp_fcn_NMR = pkldir+'ramp_2021-02-24.interp_fcn_NMR.pkl'
+pkl_interp_fcn_Hall = pkldir+'ramp_2021-02-24.interp_fcn_Hall.pkl'
 # LaTeX output
 tex_info = plotdir+'final_results/run_info.tex'
 # FEMM
