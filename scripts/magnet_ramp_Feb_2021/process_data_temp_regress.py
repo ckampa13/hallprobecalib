@@ -20,6 +20,7 @@ from configs import (
     pklproc,
     plotdir,
     probe,
+    T0,
 )
 from plotting import config_plots
 config_plots()
@@ -44,6 +45,7 @@ def linear_temperature_regression(run_num, df, plotfile, xcol, ycol, ystd,
     params = lm.Parameters()
     params.add('A', value=0, vary=True)
     params.add('B', value=0, vary=True)
+    params.add('X0', value=T0, vary=False)
     # fit
     result = model.fit(df_[ycol].values, x=df_[xcol].values,
                        params=params, weights=1/ystd, scale_covar=False)
@@ -53,23 +55,43 @@ def linear_temperature_regression(run_num, df, plotfile, xcol, ycol, ystd,
         result = model.fit(df_[ycol].values, x=df_[xcol].values,
                            params=params, weights=1/ystd, scale_covar=False)
         # label for fit
-        label= (r'$\underline{y = A + B x}$'+'\n\n'+
-                rf'$A = {result.params["A"].value:0.4f}$'+'\n'+
-                rf'$B = {result.params["B"].value:0.1f}$'+' (fixed)\n'+
-                rf'$\chi^2_\mathrm{{red.}} = {result.redchi:0.2f}$'+'\n\n')
+        bv_str = f'{result.params["B"].value:0.3E}'
+        ind = bv_str.find('E')
+        b0 = bv_str[:ind]
+        bsf = int(bv_str[ind+1:])
+        be = f'{result.params["B"].stderr/10**bsf:0.3f}'
+
+        label= (rf'$\underline{{y = A + B (x - {T0})}}$'+'\n'+
+                rf'$A = {result.params["A"].value:0.4f}$'+
+                rf'$\pm {result.params["A"].stderr:0.4f}$'+'\n'+
+                rf'$B =$'+'\n'+rf'$({b0}\pm{be})$'+
+                rf'$\times 10^{{ {bsf} }}$'+' (fixed)\n'+
+                # rf'$B = {result.params["B"].value:0.1f}$'+
+                # rf'$\pm {result.params["B"].stderr:0.1f}$'+' (fixed)\n'+
+                rf'$\chi^2_\mathrm{{red.}} = {result.redchi:0.2f}$'+'\n')
     else:
         # label for fit
-        label= (r'$\underline{y = A + B x}$'+'\n\n'+
-                rf'$A = {result.params["A"].value:0.4f}$'+'\n'+
-                rf'$B = {result.params["B"].value:0.3E}$'+'\n'+
-                rf'$\chi^2_\mathrm{{red.}} = {result.redchi:0.2f}$'+'\n\n')
+        bv_str = f'{result.params["B"].value:0.3E}'
+        ind = bv_str.find('E')
+        b0 = bv_str[:ind]
+        bsf = int(bv_str[ind+1:])
+        be = f'{result.params["B"].stderr/10**bsf:0.3f}'
+
+        label= (rf'$\underline{{y = A + B (x - {T0})}}$'+'\n'+
+                rf'$A = {result.params["A"].value:0.4f}$'+
+                rf'$\pm {result.params["A"].stderr:0.4f}$'+'\n'+
+                rf'$B =$'+'\n'+rf'$({b0}\pm{be})$'+
+                rf'$\times 10^{{ {bsf} }}$'+'\n'+
+                # rf'$B = {result.params["B"].value:0.3E}$'+
+                # rf'$\pm {result.params["B"].stderr:0.3E}$'+'\n'+
+                rf'$\chi^2_\mathrm{{red.}} = {result.redchi:0.2f}$'+'\n')
     # plot
 
     # set up figure with two axes
     config_plots()
     fig = plt.figure()
-    ax1 = fig.add_axes((0.1, 0.31, 0.7, 0.6))
-    ax2 = fig.add_axes((0.1, 0.08, 0.7, 0.2))
+    ax1 = fig.add_axes((0.12, 0.315, 0.7, 0.6))
+    ax2 = fig.add_axes((0.12, 0.08, 0.7, 0.2))
     # colorbar axis
     cb_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
     # plot data and fit
@@ -229,21 +251,33 @@ def hall_regression_from_nmr(run_num, df, results_nmr, plotfile, xcol, ycol,
     params.add('A', value=nmr_params['A'].value, vary=False)
     params.add('B', value=nmr_params['B'].value, vary=False)
     params.add('C', value=0, vary=True)
+    params.add('X0', value=T0, vary=False)
     # fit
     result = model.fit(df_[ycol].values, x=df_[xcol].values,
                        params=params, weights=1/ystd, scale_covar=False)
     # plot
     # label for fit
-    label= (r'$\underline{y = C + (A + B x)}$'+'\n\n'+
-            rf'$A = {result.params["A"].value:0.4f}$'+' (fixed)\n'+
-            rf'$B = {result.params["B"].value:0.3E}$'+' (fixed)\n'+
-            rf'$C = {result.params["C"].value:0.4f}$'+' \n'+
-            rf'$\chi^2_\mathrm{{red.}} = {result.redchi:0.2f}$'+'\n\n')
+    bv_str = f'{result.params["B"].value:0.3E}'
+    ind = bv_str.find('E')
+    b0 = bv_str[:ind]
+    bsf = int(bv_str[ind+1:])
+    be = f'{result.params["B"].stderr/10**bsf:0.3f}'
+
+    label= (rf'$\underline{{y = C + [A + B (x - {T0})]}}$'+'\n'+
+            rf'$A = {result.params["A"].value:0.4f}$'+
+            rf'$\pm {result.params["A"].stderr:0.4f}$'+' (fixed)\n'+
+            rf'$B =$'+'\n'+rf'$({b0}\pm{be})$'+
+            rf'$\times 10^{{ {bsf} }}$'+' (fixed)\n'+
+            # rf'$B = {result.params["B"].value:0.3E}$'+
+            # rf'$\pm {result.params["B"].stderr:0.3E}$'+' (fixed)\n'+
+            rf'$C = {result.params["C"].value:0.4f}$'+
+            rf'$\pm {result.params["C"].stderr:0.4f}$'+' \n'+
+            rf'$\chi^2_\mathrm{{red.}} = {result.redchi:0.2f}$'+'\n')
     # set up figure with two axes
     config_plots()
     fig = plt.figure()
-    ax1 = fig.add_axes((0.1, 0.31, 0.7, 0.6))
-    ax2 = fig.add_axes((0.1, 0.08, 0.7, 0.2))
+    ax1 = fig.add_axes((0.12, 0.315, 0.7, 0.6))
+    ax2 = fig.add_axes((0.12, 0.08, 0.7, 0.2))
     # colorbar axis
     cb_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
     # plot data and fit

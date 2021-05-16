@@ -7,11 +7,11 @@ def mod_exp(x, **params):
 
 # linear: NMR vs. temperature regression
 def mod_lin(x, **params):
-    return params['A'] + params['B'] * x
+    return params['A'] + params['B'] * (x - params['X0'])
 
 # linear alternate: Hall vs. temperature regression using NMR slope
 def mod_lin_alt(x, **params):
-    return params['C'] + params['A'] + params['B'] * x
+    return params['C'] + params['A'] + params['B'] * (x - params['X0'])
 
 # B vs. I
 def ndeg_poly(x, **params):

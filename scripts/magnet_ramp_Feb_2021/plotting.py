@@ -11,7 +11,7 @@ def config_plots():
         plt.rcParams['axes.grid'] = True         # turn grid lines on
         plt.rcParams['axes.axisbelow'] = True    # put grid below points
         plt.rcParams['grid.linestyle'] = '--'    # dashed grid
-        plt.rcParams.update({'font.size': 14.0})   # increase plot font size
+        plt.rcParams.update({'font.size': 18.0})   # increase plot font size
         plt.rcParams.update({"text.usetex": True})
 
 # datetime plot format for matplotlib

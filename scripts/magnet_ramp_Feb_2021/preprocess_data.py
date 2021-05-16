@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 from matplotlib.ticker import AutoMinorLocator
 from datetime import datetime
+from datetime import timedelta
 from dateutil import parser
 from tqdm import tqdm
 from joblib import Parallel, delayed
@@ -32,7 +33,7 @@ config_plots()
 
 def get_probe_IDs(df):
     probes = [c[:-6] for c in df.columns if "Raw_X" in c]
-    return probes
+    return sorted(probes)
 
 def load_save_raw(rname, pname):
     # message
@@ -151,6 +152,17 @@ def timing_checks_latex(df_raw, df_info, writefile):
         f.write(out_str)
     return out_str
 
+def plot_B_vs_Temp(df_, xcol='Yoke (center magnet)',
+                   ycol='NMR [T]', ystd=5e-6):
+    fig, ax = plt.subplots()
+    ax.errorbar(df_[xcol].values, df_[ycol].values, yerr=ystd,
+                fmt='o', ls='none', ms=2, zorder=100)#, label=label_data)
+    # scatter with color
+    #sc = ax1.scatter(df_[xcol].values, df_[ycol].values, c=df_.index, s=1,
+    #                 zorder=101)
+    sc = ax.scatter(df_[xcol].values, df_[ycol].values, c=df_.run_hours, s=1,
+                    zorder=101)
+
 def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
                            ystd_sf):
     # query raw data to get run
@@ -177,16 +189,24 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
                        params=params, weights=1/ystd, scale_covar=False)
     # plot
     # label for fit
+    # label= (r'$\underline{y = A + B e^{-x / C}}$'+'\n\n'+
+    #         rf'$A = {result.params["A"].value:0.2f}$'+'\n'+
+    #         rf'$B = {result.params["B"].value:0.2f}$'+'\n'+
+    #         rf'$C = {result.params["C"].value:0.2f}$'+'\n'+
+    #         rf'$\chi^2_\mathrm{{red.}} = {result.redchi:0.2f}$'+'\n\n')
     label= (r'$\underline{y = A + B e^{-x / C}}$'+'\n\n'+
-            rf'$A = {result.params["A"].value:0.2f}$'+'\n'+
-            rf'$B = {result.params["B"].value:0.2f}$'+'\n'+
-            rf'$C = {result.params["C"].value:0.2f}$'+'\n'+
+            rf'$A = {result.params["A"].value:0.3f}$'+
+            rf'$\pm{result.params["A"].stderr:0.3f}$'+'\n'+
+            rf'$B = {result.params["B"].value:0.3f}$'+
+            rf'$\pm{result.params["B"].stderr:0.3f}$'+'\n'+
+            rf'$C = {result.params["C"].value:0.3f}$'+
+            rf'$\pm{result.params["C"].stderr:0.3f}$'+'\n'+
             rf'$\chi^2_\mathrm{{red.}} = {result.redchi:0.2f}$'+'\n\n')
     # set up figure with two axes
     config_plots()
     fig = plt.figure()
-    ax1 = fig.add_axes((0.1, 0.31, 0.8, 0.6))
-    ax2 = fig.add_axes((0.1, 0.11, 0.8, 0.2))
+    ax1 = fig.add_axes((0.12, 0.33, 0.8, 0.58))
+    ax2 = fig.add_axes((0.12, 0.13, 0.8, 0.2))
     # plot data and fit
     # data
     if ystd_sf == 1:
@@ -198,6 +218,12 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
     # fit
     ax1.plot(df_2.index.values, result.best_fit, linewidth=2, color='red',
              zorder=99, label=label)
+    # time constant
+    x_ = df_2.index[0] + timedelta(hours=result.params["C"].value)
+    ymin = np.min(df_2[ycol])*0.95
+    ymax = np.max(df_2[ycol])*1.02
+    ax1.plot([x_, x_], [ymin, ymax], '--', color='gray', zorder=101,
+             label=rf'$C = {result.params["C"].value:0.3f}$ [Hours]')
     # calculate residual (data - fit)
     res = df_2[ycol].values - result.best_fit
     # calculate ylimit for ax2
@@ -225,7 +251,7 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
     #ax1.set_xlim([tmin, tmax])
     #ax2.set_xlim([tmin, tmax])
     # turn on legend
-    ax1.legend().set_zorder(101)
+    ax1.legend().set_zorder(102)
     # add title
     fig.suptitle(f'Temperature Stability Fit: Exponential Decay\n'+
                  f'Run Index {run_num}')
@@ -235,6 +261,7 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
     # inward ticks and ticks on right and top
     ax1.tick_params(which='both', direction='in', top=True, right=True,
                     bottom=True)
+    # ax1.ticklabel_format(axis='y', useOffset=True)
     ax2.tick_params(which='both', direction='in', top=True, right=True)
     # tick label format consistent
     formatter = DateFormatter('%m-%d %H:%M')
@@ -249,8 +276,10 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
     hmax = df_.run_hours.max()
     tau = result.params["C"].value
     # special case (water chiller failed) -- only remove 1/2 time constant
-    if hmax/tau < 1:
-        df_ = df_.query(f'run_hours > {tau/2}').copy()
+    # if hmax/tau < 1:
+    if hmax/tau < 1.5:
+        # df_ = df_.query(f'run_hours > {tau/2}').copy()
+        df_ = df_.query(f'run_hours > {tau/8}').copy()
     # else normal case -- remove one time constant
     else:
         df_ = df_.query(f'run_hours > {tau}').copy()

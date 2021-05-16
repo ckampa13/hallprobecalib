@@ -3,7 +3,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 # local imports
-from configs import plotdir, femmfile_70, GMW_currents, GMW_Bs
+from configs import (
+    femmfile_70,
+    femmfile_70_1006,
+    GMW_Bs,
+    GMW_currents,
+    plotdir
+)
+
 from plotting import config_plots
 config_plots()
 
@@ -75,7 +82,8 @@ def comparison_plot(df_GMW, df_FEMM, df_FEMM_part, savename):
 if __name__=='__main__':
     print('Running script: femm_gmw_compare.py')
     time0 = datetime.now()
-    df_GMW, df, df_ = load_data(femmfile_70, GMW_currents, GMW_Bs)
+    #df_GMW, df, df_ = load_data(femmfile_70, GMW_currents, GMW_Bs)
+    df_GMW, df, df_ = load_data(femmfile_70_1006, GMW_currents, GMW_Bs)
     fig, ax1, ax2 = comparison_plot(df_GMW, df, df_,
                                     plotdir+'final_results/femm/'+
                                     'femm_gmw_comparison_ratio')

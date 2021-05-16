@@ -8,6 +8,7 @@ from matplotlib.ticker import AutoMinorLocator
 # local imports
 from model_funcs import ndeg_poly1d
 from configs import (
+    femmfile_75_1006,
     femmfile_75_estimate,
     femmfile_75_Hall,
     femmfile_75_NMR,
@@ -23,16 +24,35 @@ def load_data(femmfile, meas_currents):
     # load FEMM file and multiple current by factor of 2
     if femmfile == femmfile_75_estimate:
         raise NotImplementedError
-    # read FEMM file
-    df = pd.read_csv(femmfile, skiprows=8, names=['I','B'])
-    # scale current
-    df.eval('I = I * 2', inplace=True)
-    # grab measurement points
-    df_meas = df[np.isin(df.I,meas_currents)].copy()
-    # remove high end of FEMM df
-    #df = df.query(f'I <= {np.max(meas_currents) + 3.}')
-    df = df.query('I <= 281.01')
-    return df, df_meas
+    elif femmfile == femmfile_75_1006:
+        # read FEMM file
+        df = pd.read_csv(femmfile, skiprows=8,
+                         names=['probe', 'I', 'Br', 'Bz', 'B'])
+        # scale current
+        df.eval('I = I * 2', inplace=True)
+        # remove high end of FEMM df
+        df = df.query('I <= 280.01')
+        # df = df.query('I <= 282.01')
+        # split NMR and Hall
+        df_Hall = df.query('probe == "Hall"').copy()
+        df_NMR = df.query('probe == "NMR"').copy()
+        df_Hall.reset_index(drop=True, inplace=True)
+        df_NMR.reset_index(drop=True, inplace=True)
+        # grab measurement points
+        Hall_meas = df_Hall[np.isin(df_Hall.I,meas_currents)].copy()
+        NMR_meas = df_NMR[np.isin(df_NMR.I,meas_currents)].copy()
+        return df_Hall, Hall_meas, df_NMR, NMR_meas
+    else:
+        # read FEMM file
+        df = pd.read_csv(femmfile, skiprows=8, names=['I','B'])
+        # scale current
+        df.eval('I = I * 2', inplace=True)
+        # grab measurement points
+        df_meas = df[np.isin(df.I,meas_currents)].copy()
+        # remove high end of FEMM df
+        #df = df.query(f'I <= {np.max(meas_currents) + 3.}')
+        df = df.query('I <= 281.01')
+        return df, df_meas
 
 def simple_plot(hall, meas_hall, nmr, meas_nmr):
     # plot the full FEMM datasets and measured points
@@ -103,7 +123,11 @@ def fit_B_vs_I_femm(ndeg, df_meas, df_full, name='NMR', method='POLYFIT',
         model = lm.Model(ndeg_poly1d, independent_vars=['x'])
         params = lm.Parameters()
         for i in range(ndeg+1):
-            params.add(f'C_{i}', value=0, vary=True)
+            if i == 0:
+                v = False
+            else:
+                v = True
+            params.add(f'C_{i}', value=0, vary=v)
         # fit
         result = model.fit(df_.B.values, x=df_.I.values,
                            params=params, weights=1/ystd, scale_covar=False)
@@ -271,8 +295,18 @@ if __name__=='__main__':
     pdir = plotdir+'final_results/femm/'
     # not implemented
     # load_data(femmfile_75_estimate)
-    df_hall, df_hall_meas = load_data(femmfile_75_Hall, Hall_currents)
-    df_nmr, df_nmr_meas = load_data(femmfile_75_NMR, NMR_currents)
+    # old materials
+    # df_hall, df_hall_meas = load_data(femmfile_75_Hall, Hall_currents)
+    # df_nmr, df_nmr_meas = load_data(femmfile_75_NMR, NMR_currents)
+    # correct materials from GMW
+    temp = load_data(femmfile_75_1006, Hall_currents)
+    df_hall, df_hall_meas, df_nmr, df_nmr_meas = temp
+    df_nmr_meas = df_nmr_meas.query('I > 120').copy()
+    # test output
+    print('NMR:')
+    print(df_nmr)
+    print('Hall:')
+    print(df_hall)
     #print(len(df_hall), len(df_nmr))
     #print(len(df_hall_meas), len(df_nmr_meas))
 
@@ -336,4 +370,4 @@ if __name__=='__main__':
 
     timef = datetime.now()
     print(f'Runtime: {timef-time0} [H:MM:SS])\n')
-    #plt.show()
+    plt.show()

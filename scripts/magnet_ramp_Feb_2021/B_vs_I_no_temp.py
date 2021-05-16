@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 # local imports
 from configs import (
+    femmfile_75_1006,
     femmfile_75_Hall,
     femmfile_75_NMR,
     Hall_currents,
@@ -25,6 +26,7 @@ from configs import (
     pklproc_ramp,
     plotdir,
     probe,
+    T0,
 )
 from factory_funcs import get_NMR_B_at_T0_func, get_Hall_B_at_T0_func
 from femm_fits import load_data
@@ -51,7 +53,7 @@ def create_all_funcs(pklfit_temp_nmr, pklfit_temp_hall, pklfit_temp_hall_nmr):
     return get_NMR, get_Hall, get_Hall_NMR
 
 def regressed_Bs(get_NMR, get_Hall, get_Hall_NMR, df_info,
-                 pklinfo_hall_regress, pklinfo_nmr_regress, T0=15):
+                 pklinfo_hall_regress, pklinfo_nmr_regress, T0=T0):
     # split dataframe
     df_NMR = df_info.query('ramp & NMR').copy()
     df_Hall = df_info.query('ramp').copy()
@@ -421,7 +423,7 @@ def plot_proc_and_fit(proc_ramp, result_B_vs_I, ycol='NMR [T]', name='NMR',
     Is_fine = np.linspace(np.min(Is), np.max(Is), 200)
     Bs = df_[ycol].values
     Ts = df_['Yoke (center magnet)'].values
-    T0 = 15. # deg C
+    # T0 = 15. # deg C
     # check if regress or interp
     if type(result_B_vs_I) == lm.model.ModelResult:
         # regressed
@@ -603,8 +605,12 @@ if __name__=='__main__':
     df_Hall = pd.read_pickle(pklinfo_hall_regress)
 
     # load FEMM data for ratio plot
-    femm_hall, femm_hall_meas = load_data(femmfile_75_Hall, Hall_currents)
-    femm_nmr, femm_nmr_meas = load_data(femmfile_75_NMR, NMR_currents)
+    #femm_hall, femm_hall_meas = load_data(femmfile_75_Hall, Hall_currents)
+    #femm_nmr, femm_nmr_meas = load_data(femmfile_75_NMR, NMR_currents)
+    temp = load_data(femmfile_75_1006, Hall_currents)
+    femm_hall, femm_hall_meas, femm_nmr, femm_nmr_meas = temp
+    femm_nmr_meas = femm_nmr_meas.query('I > 120').copy()
+
     I_min_NMR = femm_nmr_meas.query('I>120').I.min()
 
     # plots
