@@ -174,9 +174,18 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
         df_2 = df_.query('run_hours < 100')
     else:
         df_2 = df_
+    # TESTING
+    # df_2_ = df_2.copy()
+    # df_2 = df_2.iloc[120:]
+    # results = None; fig = None; ax1 = None; ax2 = None
+    # df_ = df_.iloc[120:].copy()
+    # df_['run_num'] = run_num
+    # return results, df_, fig, ax1, ax2
+    # END TESTING
     # create an array for weights if float supplied
     if type(ystd) != np.ndarray:
-        ystd = ystd*np.ones(len(df_2))
+        # ystd = ystd*np.ones(len(df_2))
+        ystd = ystd * df_2[ycol] # fractional stddev. from manufacturer
     # setup lmfit model
     # y = A + B * np.exp(- x / C)
     model = lm.Model(mod_exp, independent_vars=['x'])
@@ -308,7 +317,10 @@ def process_raw_single(run_num, df_raw, df_info):
     pf = plotdir+f'final_results/stable_temp/run-{run_num}_temp_fit'
     # fit + plot temperature stability
     temp = fit_temperature_stable(run_num, df_info, df_raw, plotfile=pf,
-                                  ycol='Yoke (center magnet)', ystd=0.014,
+                                  ycol='Yoke (center magnet)',
+                                  # ystd=0.15,
+                                  ystd=0.0006,
+                                  #ystd=0.014,
                                   ystd_sf=1)
     result, df_, fig, ax1, ax2 = temp
     # filter based on NMR 2 times

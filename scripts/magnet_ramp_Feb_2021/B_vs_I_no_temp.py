@@ -737,4 +737,4 @@ if __name__=='__main__':
 
     timef = datetime.now()
     print(f'Runtime: {timef-time0} [H:MM:SS])\n')
-    plt.show()
+    # plt.show()
