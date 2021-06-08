@@ -163,8 +163,9 @@ def plot_B_vs_Temp(df_, xcol='Yoke (center magnet)',
     sc = ax.scatter(df_[xcol].values, df_[ycol].values, c=df_.run_hours, s=1,
                     zorder=101)
 
-def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
-                           ystd_sf):
+def fit_temperature_stable(run_num, df_info, df_raw, ycol, ystd, ystd_sf,
+                           remove_data=True, plotfile=None, loss='linear'):
+    # loss should be 'linear' or 'huber'
     # query raw data to get run
     df_i = df_info.iloc[run_num]
     df_ = df_raw.query(f'"{df_i.t0}" < index < "{df_i.tf}"').copy()
@@ -195,7 +196,8 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
     params.add('C', value=1, min=0, vary=True)
     # fit
     result = model.fit(df_2[ycol].values, x=df_2.run_hours.values,
-                       params=params, weights=1/ystd, scale_covar=False)
+                       params=params, weights=1/ystd, scale_covar=False,
+                       method='least_squares', fit_kws={'loss':loss})
     # plot
     # label for fit
     # label= (r'$\underline{y = A + B e^{-x / C}}$'+'\n\n'+
@@ -235,6 +237,34 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
              label=rf'$C = {result.params["C"].value:0.3f}$ [Hours]')
     # calculate residual (data - fit)
     res = df_2[ycol].values - result.best_fit
+    res_full = (df_[ycol].values -
+                mod_exp(df_['run_hours'].values, **result.params))
+    df_['stable_temp_res'] = res_full
+    # quick histogram for residuals
+    #_ = res_full
+    _ = df_['NMR [T]'].values
+    mean_full = np.mean(_)
+    std_full = np.std(_)
+    nstd = 2
+    fig_h, ax_h = plt.subplots()
+    n, bins, patches = ax_h.hist(_, bins=25, histtype='step',
+                                 label='Measurements')
+                                #label='Fit Residuals')
+    nm = np.max(n)
+    ax_h.plot([mean_full-nstd*std_full, mean_full-nstd*std_full], [0, nm],
+              'r--', label=f'{nstd} RMS from mean')
+    ax_h.plot([mean_full+nstd*std_full, mean_full+nstd*std_full], [0, nm],
+              'r--')
+    # ax_h.set_xlabel(r'Fit Residuals [$^\circ$C]')
+    ax_h.set_xlabel(r'NMR [T]')
+    ax_h.set_ylabel('Count')
+    ax_h.set_yscale('log')
+    ax_h.legend()
+    fig_h.suptitle(f'Temperature Stability Fit Residuals: Exponential Decay\n'+
+                   f'Run Index {run_num}, {loss.capitalize()} Loss')
+    if not plotfile is None:
+        fig_h.savefig(plotfile+'_res_hist.pdf')
+        fig_h.savefig(plotfile+'_res_hist.png')
     # calculate ylimit for ax2
     yl = 1.1*(np.max(np.abs(res)) + ystd_sf*ystd[0])
     # plot residual
@@ -263,7 +293,7 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
     ax1.legend().set_zorder(102)
     # add title
     fig.suptitle(f'Temperature Stability Fit: Exponential Decay\n'+
-                 f'Run Index {run_num}')
+                 f'Run Index {run_num}, {loss.capitalize()} Loss')
     # minor ticks
     ax1.yaxis.set_minor_locator(AutoMinorLocator())
     ax2.yaxis.set_minor_locator(AutoMinorLocator())
@@ -279,19 +309,22 @@ def fit_temperature_stable(run_num, df_info, df_raw, plotfile, ycol, ystd,
     ax2.xaxis.set_tick_params(rotation=15)
     # save figure
     #fig.tight_layout()
-    fig.savefig(plotfile+'.pdf')
-    fig.savefig(plotfile+'.png')
-    # remove first "time constant" of data
-    hmax = df_.run_hours.max()
-    tau = result.params["C"].value
-    # special case (water chiller failed) -- only remove 1/2 time constant
-    # if hmax/tau < 1:
-    if hmax/tau < 1.5:
-        # df_ = df_.query(f'run_hours > {tau/2}').copy()
-        df_ = df_.query(f'run_hours > {tau/8}').copy()
-    # else normal case -- remove one time constant
-    else:
-        df_ = df_.query(f'run_hours > {tau}').copy()
+    if not plotfile is None:
+        fig.savefig(plotfile+'.pdf')
+        fig.savefig(plotfile+'.png')
+
+    if remove_data:
+        # remove first "time constant" of data
+        hmax = df_.run_hours.max()
+        tau = result.params["C"].value
+        # special case (water chiller failed) -- only remove 1/2 time constant
+        # if hmax/tau < 1:
+        if hmax/tau < 1.5:
+            # df_ = df_.query(f'run_hours > {tau/2}').copy()
+            df_ = df_.query(f'run_hours > {tau/8}').copy()
+        # else normal case -- remove one time constant
+        else:
+            df_ = df_.query(f'run_hours > {tau}').copy()
     # add run number to df
     df_['run_num'] = run_num
     return result, df_, fig, ax1, ax2
@@ -314,14 +347,18 @@ def filter_outliers(run_num, df_clean, nsig=7, ycol='NMR [T]'):
 
 def process_raw_single(run_num, df_raw, df_info):
     # generate plot file name
-    pf = plotdir+f'final_results/stable_temp/run-{run_num}_temp_fit'
-    # fit + plot temperature stability
-    temp = fit_temperature_stable(run_num, df_info, df_raw, plotfile=pf,
+    pf1 = plotdir+f'final_results/stable_temp/run-{run_num}_temp_fit_huber'
+    pf2 = plotdir+f'final_results/stable_temp/run-{run_num}_temp_fit'
+    # fit + plot temperature stability, huber loss
+    temp = fit_temperature_stable(run_num, df_info, df_raw, plotfile=pf2,
                                   ycol='Yoke (center magnet)',
                                   # ystd=0.15,
                                   ystd=0.0006,
                                   #ystd=0.014,
-                                  ystd_sf=1)
+                                  ystd_sf=1,
+                                  # TEST
+                                  remove_data=True,
+                                  loss='linear')
     result, df_, fig, ax1, ax2 = temp
     # filter based on NMR 2 times
     df_ = filter_outliers(None, df_, nsig=7, ycol='NMR [T]')
