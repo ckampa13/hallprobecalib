@@ -24,6 +24,7 @@ def load_data(femmfile, meas_currents):
     # load FEMM file and multiple current by factor of 2
     if femmfile == femmfile_75_estimate:
         raise NotImplementedError
+        # df = pd.read_csv(femmfile, name)
     elif femmfile == femmfile_75_1006:
         # read FEMM file
         df = pd.read_csv(femmfile, skiprows=8,
