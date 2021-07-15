@@ -326,6 +326,33 @@ if __name__ == '__main__':
     ax.legend().set_zorder(110)
     fig.savefig(pdir+'Yoke-Halls_vs_I.pdf')
     fig.savefig(pdir+'Yoke-Halls_vs_I.png')
+
+    # yoke vs current + hall probe temp
+    _ = plot2d(df=proc_ramp, x='Magnet Current [A]', y='Coil 1 (new)',
+               xl=None, yl='Coil Temperature [deg C]', s=2, c='blue',
+               legendlab='Coil 1', title=None, query=None, scix=False,
+               sciy=False, zorder=99, pfile=None)
+    fig, ax = _
+    ax.scatter(proc_ramp['Magnet Current [A]'], proc_ramp['Coil 2 (old)'], s=2,
+               c='orange', label='Coil 2', zorder=i+100)
+    # for i,p in enumerate(probes):
+    # for i,pc in enumerate(zip(probes, ['red', 'blue', 'purple', 'green'])):
+    #     p, c = pc
+    #     m = np.mean(proc_ramp[f'{p}_Cal_Bmag'])
+    #     print(f'{p}: |B|_mean = {m} [T]')
+    #     ax.scatter(proc_ramp['Magnet Current [A]'],
+    #                proc_ramp[f'{p}_Cal_T'], s=2, c=c,
+    #                label=f'Hall probe ({p})', zorder=i+100)
+    ax.plot([0, 280], [T0, T0], 'r--', label='HVAC Setting', zorder=97)
+    ax.fill_between([192.064, 285.], [6, 6], [54, 54], color='gray',
+                    alpha=0.5, label='Chiller Failed', zorder=98)
+    ax.plot([0, 280], [50, 50], color='magenta', linestyle='--',
+            marker=None, label='Coil Overtemperature Interlock',
+            zorder=99)
+    ax.legend().set_zorder(110)
+    fig.savefig(pdir+'Coils_vs_I.pdf')
+    fig.savefig(pdir+'Coils_vs_I.png')
+
     # probes B vs. I
     plt.rcParams.update({'font.size': 22})
     probes_ = [p for p in probes if p != probe]
