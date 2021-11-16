@@ -14,6 +14,7 @@ from configs import (
     pklinfo,
     pklinfo_hall_regress,
     pklinfo_nmr_regress,
+    pklinfo_temp_params,
     pklproc,
     pklproc_hyst,
     pklproc_ramp,
@@ -239,6 +240,8 @@ if __name__ == '__main__':
     sub_factor = {f'{row.I:0.0f}':row.A_NMR for row in df_.itertuples()}
     df_info['A_NMR_shift'] = np.array([row.A_NMR - sub_factor[f'{row.I:0.0f}']
                                        for row in df_info.itertuples()])
+    # save df_info with parameter information
+    df_info.to_pickle(pklinfo_temp_params)
     # stability data
     df_proc = pd.read_pickle(pklproc).query('`Magnet Current [A]` > 125.')
     # subtract mean

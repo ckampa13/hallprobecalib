@@ -88,11 +88,11 @@ def zaber_ADC_to_zaber_mm(zaber_ADC, coord):
     delta_ADC = zaber_ADC - ADC_at_lims[coord]
     delta_mm = delta_ADC * mm_per_ADC
     return mm_at_lims[coord] + delta_mm
-    
+
 def mag_mm_to_zaber_ADC(mag_mm, coord):
     _ = mag_mm_to_zaber_mm(mag_mm, coord)
     return zaber_mm_to_zaber_ADC(_, coord)
-    
+
 def zaber_ADC_to_mag_mm(zaber_ADC, coord):
     _ = zaber_ADC_to_zaber_mm(zaber_ADC, coord)
     return zaber_mm_to_mag_mm(_, coord)
