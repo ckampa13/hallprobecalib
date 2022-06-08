@@ -4,10 +4,12 @@ from dateutil import parser
 from pandas.api.types import is_numeric_dtype
 
 # local imports
-from Zaber_Magnet_Convert import ADC_to_mm
+# from Zaber_Magnet_Convert import ADC_to_mm
+from Zaber_Magnet_Convert import zaber_ADC_to_magnet_mm
 
 
-def load_data(file, pklname=None):
+# def load_data(file, pklname=None):
+def load_data(file, low_NMR=False, pklname=None):
     with open(file, 'r') as f:
         firstline = f.readline().split(',')
         header = [e.strip(' ').strip('\n') for e in firstline]
@@ -28,7 +30,8 @@ def load_data(file, pklname=None):
         df = df[cols]
     # add conversion to magnet coordinates
     for i in ['X', 'Y', 'Z']:
-        df[f'magnet_{i}_mm'] = ADC_to_mm(df[f'Zaber_Meas_Encoder_{i}'].values, coord=i)
+        #df[f'magnet_{i}_mm'] = ADC_to_mm(df[f'Zaber_Meas_Encoder_{i}'].values, coord=i)
+        df[f'magnet_{i}_mm'] = zaber_ADC_to_magnet_mm(df[f'Zaber_Meas_Encoder_{i}'].values, coord=i, low_NMR=low_NMR)
     # save to pickle
     if not pklname is None:
         df.to_pickle(pklname)

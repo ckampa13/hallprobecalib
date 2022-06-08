@@ -620,6 +620,17 @@ if __name__=='__main__':
     fig, ax = plot_R_vs_I(df_NMR, femm_nmr, femm_nmr_meas, femm_hall,
                           femm_hall_meas, I_cut=I_min_NMR,
                           plotfile=pdir+'Bratio_vs_I')
+    # add pole to pole data from Darren
+    df_pole = pd.read_pickle('/home/shared_data/GMW_magnet_calibration/hall-nmr_current.pkl')
+    fig, ax = plot_R_vs_I(df_NMR, femm_nmr, femm_nmr_meas, femm_hall,
+                          femm_hall_meas, I_cut=I_min_NMR,
+                          plotfile=None)
+    ax.scatter(df_pole['Current'], df_pole['Bhall/Bnmr'], s=25, marker='^', c='red',
+               zorder=110, label='Pole-to-pole data')
+    ax.legend()
+    fig.savefig(pdir+'Bratio_vs_I_with_pole-to-pole.pdf')
+    fig.savefig(pdir+'Bratio_vs_I_with_pole-to-pole.png')
+
     temp = plot_data_vs_FEMM(df_NMR, df_Hall, femm_nmr_meas, femm_hall_meas,
                              I_cut_NMR=120, I_cut_Hall=30,
                              pfile_NMR=pdir+'FEMM_div_NMR',

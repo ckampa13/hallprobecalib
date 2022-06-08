@@ -43,7 +43,7 @@ def scatter2d(x_list, y_list, colors_list=None, colorscale_list=None, size_list=
             colorscale_list = plotly_colors[:len(colors_list)]
             # colorscale_list = len(colors_list)*["Viridis"]
 
-    if size_list == None:
+    if size_list is None:
         size_list = [2 for i in x_list]
     else:
         if type(size_list) != list:
@@ -57,7 +57,7 @@ def scatter2d(x_list, y_list, colors_list=None, colorscale_list=None, size_list=
     else:
         mode = 'markers'
 
-    if title == None:
+    if title is None:
         try:
             title = f'{y_list[0].name} vs. {x_list[0].name}'
         except:
@@ -72,7 +72,7 @@ def scatter2d(x_list, y_list, colors_list=None, colorscale_list=None, size_list=
         x = x_list[idx]
         y = y_list[idx]
         size = size_list[idx]
-        if legend_list == None:
+        if legend_list is None:
             try:
                 name = y.name
             except:
@@ -133,7 +133,7 @@ def scatter2d(x_list, y_list, colors_list=None, colorscale_list=None, size_list=
     if colors_list is not None:
         fig.update_layout(legend=dict(y=1.2))
 
-    if filename == None:
+    if filename is None:
         filename = 'scatter2d_DEFAULT'
 
     if show_plot == True:
@@ -157,31 +157,31 @@ def scatter3d(x_list, y_list, z_list, scale_list=None,scale_unit='ns', mode_list
     if type(z_list) != list:
         z_list = [z_list]
 
-    if scale_list == None:
+    if scale_list is None:
         scale_list = z_list
 
-    if mode_list == None:
+    if mode_list is None:
         mode_list = ['markers' for i in z_list]
 
-    if colorbars_list == None:
+    if colorbars_list is None:
         colorbars_list = len(x_list) * [True]
 
-    if min_color_list == None:
+    if min_color_list is None:
         min_color_list = [s.min() for s in scale_list]
         max_color_list = [s.max() for s in scale_list]
 
-    if opacity_list == None:
+    if opacity_list is None:
         opacity_list = [0.8 for i in x_list]
     else:
         if type(opacity_list) != list:
             opacity_list = [opacity_list]
-    if size_list == None:
+    if size_list is None:
         size_list = [2 for i in x_list]
     else:
         if type(size_list) != list:
             size_list = [size_list]
 
-    if units_list == None:
+    if units_list is None:
         units_list = [("mm","mm","T") for j in x_list]
     else:
         if type(units_list) != list:
@@ -189,7 +189,7 @@ def scatter3d(x_list, y_list, z_list, scale_list=None,scale_unit='ns', mode_list
     if type(units_list[0]) != tuple:
         units_list = [tuple(["mm" for i in range(3)]) for j in x_list]
 
-    if colors_list == None:
+    if colors_list is None:
         colors_list = ['Viridis' for i in x_list]
     else:
         if type(colors_list) != list:
@@ -261,12 +261,12 @@ def scatter3d(x_list, y_list, z_list, scale_list=None,scale_unit='ns', mode_list
 
     data = traces
 
-    # if title == None:
+    # if title is None:
     #     title = f'3D Scatter Spherical Coord)'
     # else:
     #     title = title + f' 3D Scatter (Spherical Coord)'
 
-    if title == None:
+    if title is None:
         title = f'{z_list[0].name} vs. {x_list[0].name}, {y_list[0].name}'
     else:
         title = title + f' {z_list[0].name} vs. {x_list[0].name}, {y_list[0].name}'
@@ -278,11 +278,11 @@ def scatter3d(x_list, y_list, z_list, scale_list=None,scale_unit='ns', mode_list
     ymax = min([x.max() for x in y_list])
     zmax = min([x.max() for x in z_list])
 
-    if rangex == None:
+    if rangex is None:
         rangex = xmax - xmin
-    if rangey == None:
+    if rangey is None:
         rangey = ymax - ymin
-    if rangez == None:
+    if rangez is None:
         rangez = zmax - zmin
 
     if rangex > rangey:
@@ -332,7 +332,7 @@ def scatter3d(x_list, y_list, z_list, scale_list=None,scale_unit='ns', mode_list
                 )
         )
 
-    if fig_ == None:
+    if fig_ is None:
         fig = go.Figure(data=data, layout=layout)
     else:
         if copy_fig:
@@ -344,7 +344,7 @@ def scatter3d(x_list, y_list, z_list, scale_list=None,scale_unit='ns', mode_list
 
     # fig['layout'].update(go.layout.Scene(aspectmode='data'))
 
-    if filename == None:
+    if filename is None:
         filename = 'scatter3d_DEFAULT'
 
     if show_plot == True:
@@ -362,13 +362,13 @@ def histo(series_list, names_list=None, xlabel=None, bins=10, same_bins=False, a
     if type(series_list) != list:
         series_list = [series_list]
 
-    if names_list == None:
+    if names_list is None:
         names_list = [i.name for i in series_list]
     else:
         if type(names_list) != list:
             names_list = list(names_list)
 
-    if xlabel == None:
+    if xlabel is None:
         xlabel = series_list[0].name
 
     if same_bins:
@@ -447,7 +447,7 @@ def histo(series_list, names_list=None, xlabel=None, bins=10, same_bins=False, a
 
     data = traces
 
-    if title == None:
+    if title is None:
         title = f'Histo: {", ".join([i.name for i in series_list])}'
     else:
         title = title + f' Histo: {", ".join([i.name for i in series_list])}'
@@ -487,7 +487,7 @@ def histo(series_list, names_list=None, xlabel=None, bins=10, same_bins=False, a
 
     fig = go.Figure(data=data, layout=layout)
 
-    if filename == None:
+    if filename is None:
         filename = 'h_DEFAULT'
 
     if show_plot:
@@ -577,24 +577,24 @@ def spherical_scatter3d(phi_list, theta_list, r_list, units_list=None, absval=Tr
     if type(r_list) != list:
         r_list = [r_list]
 
-    if opacity_list == None:
+    if opacity_list is None:
         opacity_list = [0.8 for i in phi_list]
     else:
         if type(opacity_list) != list:
             opacity_list = [opacity_list]
-    if size_list == None:
+    if size_list is None:
         size_list = [2 for i in phi_list]
     else:
         if type(size_list) != list:
             size_list = [size_list]
 
-    if units_list == None:
+    if units_list is None:
         units_list = ["T" for i in phi_list]
     else:
         if type(units_list) != list:
             units_list = [units_list]
 
-    if colors_list == None:
+    if colors_list is None:
         colors_list = ['Viridis' for i in phi_list]
     else:
         if type(colors_list) != list:
@@ -640,7 +640,7 @@ def spherical_scatter3d(phi_list, theta_list, r_list, units_list=None, absval=Tr
 
     data = traces
 
-    if title == None:
+    if title is None:
         title = f'3D Scatter (Spherical Coord)'
     else:
         title = title + f' Scatter (Spherical Coord)'
@@ -652,7 +652,7 @@ def spherical_scatter3d(phi_list, theta_list, r_list, units_list=None, absval=Tr
     )
     fig = go.Figure(data=data, layout=layout)
 
-    if filename == None:
+    if filename is None:
         filename = 'spherical_scatter3d_DEFAULT'
 
     if inline:
