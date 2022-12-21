@@ -92,30 +92,6 @@ def plane_fit_SVD(df):
     norm_v = norm_v/np.linalg.norm(norm_v)
     return norm_v, centroid
 
-# circle fit
-# 2D (from emtracks)
-'''
-def calc_R(xc, yc, x, y):
-    return np.sqrt((x-xc)**2 + (y-yc)**2)
-
-def circ_alg_dist(center, x, y):
-    Ri = calc_R(*center, x, y)
-    return Ri - Ri.mean()
-
-def reco_circle(x, y):
-    x_m = np.mean(x)
-    y_m = np.mean(y)
-    center_est = x_m, y_m
-    center_fit, ier = optimize.leastsq(circ_alg_dist, center_est, args=(x, y))
-    Ri_fit = calc_R(*center_fit, x, y)
-    R_fit = np.mean(Ri_fit)
-    R_residual = np.sum((Ri_fit - R_fit)**2)
-    return center_fit, R_fit, Ri_fit, R_residual
-
-# cent, R_guess, Ri_fit, R_residual = reco_circle(track_data_rot[1], track_data_rot[2])
-# C_x_guess, C_y_guess = cent
-'''
-
 #### analysis driver
 #def analyze_group(ind_group, df_groups, df_meas):
 def analyze_group_plane(ind_group, df_meas):
