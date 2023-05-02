@@ -26,3 +26,5 @@ datafiles
 .ipynb_checkpoints/
 scripts/.ipynb_checkpoints/
 
+# monitoring email app password
+scripts/monitoring/email_config.py
