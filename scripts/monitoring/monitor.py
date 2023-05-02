@@ -13,7 +13,7 @@ from pandas.plotting import register_matplotlib_converters
 from plotting import config_plots, get_label
 from load_slow import *
 from configs import *
-from email_funcs import daily_email
+from email_funcs import daily_email, NMR_error_email, Magnet_Current_error_email, DataStream_error_email
 
 register_matplotlib_converters()
 config_plots()
@@ -128,13 +128,36 @@ def check_NMR(df, B0, dB, N_fail=3):
         NMR_pass = True
     return NMR_pass, N_bad, m_bad
 
+def check_Magnet_Current(df, minI=1., N_fail=3):
+    m_good = (df['Magnet Current [A]'] >= minI)
+    m_bad = (~m_good)
+    N_bad = m_bad.sum()
+    if N_bad >= N_fail:
+        Magnet_Current_pass = False
+    else:
+        Magnet_Current_pass = True
+    return Magnet_Current_pass, N_bad, m_bad
+
+def check_DataStream(df, delay_max=60.):
+    now = datetime.datetime.now()
+    min_since_data = (now - df.index[-1]).total_seconds() / 60.
+    if min_since_data > delay_max:
+        DataStream_pass = False
+    else:
+        DataStream_pass = True
+    return DataStream_pass, min_since_data
+
+
 if __name__=='__main__':
     # parse command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-N', '--NMR',
                         help='Monitor NMR? "y"(default)/"n"')
+    # FIXME! may want B0 to be inferred from previous 24 hours of data. Not sure yet.
     parser.add_argument('-B', '--B0',
                         help='What B field is expected? 1.0 (default)')
+    parser.add_argument('-M', '--Magnet',
+                        help='Monitor Magnet Current? "y"(default)/"n"')
     parser.add_argument('-T', '--Temps',
                         help='Monitor temperatures? "y"(default)/"n"')
     parser.add_argument('-S', '--Sleep',
@@ -149,6 +172,10 @@ if __name__=='__main__':
         args.B0 = 1.0
     else:
         args.B0 = float(args.B0.strip())
+    if args.Magnet is None:
+        args.Magnet = True
+    else:
+        args.Magnet = args.Magnet.strip() == 'y'
     if args.Temps is None:
         args.Temps = True
     else:
@@ -160,6 +187,9 @@ if __name__=='__main__':
     # main loop
     first_loop = True
     NMR_email_sent = False
+    Magnet_email_sent = False
+    DataStream_email_freq_hours = 1.
+    DataStream_email_last = datetime.datetime.now() - datetime.timedelta(hours=100)
     #daily_email_now = False
     email_sent_today = False
     email_date = datetime.date.today()
@@ -235,6 +265,9 @@ if __name__=='__main__':
         if datetime.date.today() != email_date:
             email_sent_today = False
             email_date = datetime.date.today()
+            # reset any warning emails
+            NMR_email_sent = False
+            Magnet_email_ent = False
         # only do other things if there's new data
         if new_data:
             # make recent dataframe
@@ -264,16 +297,36 @@ if __name__=='__main__':
                 pdf.close()
             # send any emails
             if args.NMR:
-                NMR_pass, _, _ = check_NMR(df_rec, args.B0, dB=1e-4, N_fail=3)
+                NMR_pass, N_bad, m_bad = check_NMR(df_rec, args.B0, dB=1e-4, N_fail=3)
                 if not NMR_pass:
                     if NMR_email_sent:
                         print('Please check NMR data! (Email already sent)')
                     else:
                         # email!
                         print('ERROR (sending email)! Please check NMR data!')
-                        ### email here
+                        NMR_error_email(datetime.date.today(), df, m_bad)
+                        NMR_email_sent = True
+            if args.Magnet:
+                Magnet_Current_pass, N_bad, m_bad = check_Magnet_Current(df_rec, minI=1., N_fail=3)
+                if not Magnet_Current_pass:
+                    if Magnet_email_sent:
+                        print('Please check Magnet Current data! (Email already sent)')
+                    else:
+                        # email!
+                        print('ERROR (sending email)! Please check Magnet Current data!')
+                        Magnet_Current_error_email(datetime.date.today(), df_rec, m_bad)
+                        Magnet_email_sent = True
+            # DataStream
+            DataStream_pass, min_since_data = check_DataStream(df, delay_max=60.)
+            if not DataStream_pass:
+                hours_since_DataStream_email = (datetime.datetime.now()-DataStream_email_last).total_seconds() / 60. / 60.
+                if hours_since_DataStream_email >= DataStream_email_freq_hours:
+                    DataStream_error_email(datetime.date.today(), df, min_since_data)
+                    DataStream_email_last = datetime.datetime.now()
         else:
             print('No new data.')
+        # close any open plots
+        plt.close('all')
         # hold for some amount of time
         print(f'Waiting for {args.Sleep} minutes...')
         time.sleep(args.Sleep * 60)
