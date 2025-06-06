@@ -52,9 +52,10 @@ def make_temps_dict(df):
 
 def make_NMR_plot(df, B0, dB):
     fig, axs = plt.subplots(2, 1, figsize=(18, 16))
-    axs[0].plot([df.index[0], df.index[-1]], [B0, B0], 'k-', label=f'Expected field={B0} [T]')
-    axs[0].plot([df.index[0], df.index[-1]], [B0-dB, B0-dB], 'r--', label='Normal Range')
-    axs[0].plot([df.index[0], df.index[-1]], [B0+dB, B0+dB], 'r--')
+    if len(df) > 1:
+        axs[0].plot([df.index[0], df.index[-1]], [B0, B0], 'k-', label=f'Expected field={B0} [T]')
+        axs[0].plot([df.index[0], df.index[-1]], [B0-dB, B0-dB], 'r--', label='Normal Range')
+        axs[0].plot([df.index[0], df.index[-1]], [B0+dB, B0+dB], 'r--')
 
     axs[0].scatter(df.index, df['NMR [T]'], s=1, label='Measurements')
 
@@ -63,9 +64,10 @@ def make_NMR_plot(df, B0, dB):
     axs[1].scatter(df.index, df['Magnet Current [A]'], s=1)
 
     # limits
-    for ax in axs:
-        trange = df.index[-1] - df.index[0]
-        ax.set_xlim([df.index[0]-0.05*trange, df.index[-1]+0.05*trange])
+    if len(df) > 1:
+        for ax in axs:
+            trange = df.index[-1] - df.index[0]
+            ax.set_xlim([df.index[0]-0.05*trange, df.index[-1]+0.05*trange])
 
     axs[0].set_xlabel('Datetime')
     axs[1].set_xlabel('Datetime')
@@ -209,7 +211,10 @@ if __name__=='__main__':
             print('Not first loop, reading only new.')
             # load pickle file
             skiprows_extra = len(df)
-            df2 = load_data(current_slow_scan, skiprows_extra=skiprows_extra)
+            try:
+                df2 = load_data(current_slow_scan, skiprows_extra=skiprows_extra)
+            except:
+                df2 = []
             # read only the new parts
             N_new = len(df2)
             if N_new == 0:
@@ -325,6 +330,7 @@ if __name__=='__main__':
                     DataStream_email_last = datetime.datetime.now()
         else:
             print('No new data.')
+            ### ADD CODE TO STOP IF THERE ISN'T NEW DATA FOR A FEW HOURS (EMAIL)
         # close any open plots
         plt.close('all')
         # hold for some amount of time
