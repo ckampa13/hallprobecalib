@@ -1,0 +1,7 @@
+filename,run_type,expected_field,polarity,chiller_temp_F
+2025-05-28 163327.txt,prod,0.75,pos,55.0
+2025-05-29 120422.txt,prod,0.91,pos,55.0
+2025-05-30 123447.txt,prod,0.98,pos,55.0
+2025-06-03 101024.txt,prod,1.11,pos,55.0
+2025-06-04 175929.txt,prod,1.21,pos,40.0
+2025-06-06 213810.txt,prod,1.31,pos,40.0
